@@ -6,16 +6,21 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Run Extension",
+			"name": "Run Extension - Watch Mode",
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
+			"smartStep": true,
+			"sourceMaps": true,
+			"preLaunchTask": "npm: watch",
+			"env": {
+				"VSCODE_DEV_DEBUG": "1"
+			},
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],
-			"preLaunchTask": "${defaultBuildTask}"
 		}
 	]
 }

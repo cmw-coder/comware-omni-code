@@ -1,26 +1,36 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
+import { CompletionProvider } from './providers/CompletionProvider';
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+    console.log('Congratulations, your extension "comware-omni-code" is now active!');
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "comware-omni-code" is now active!');
+    // Show a notification to confirm activation
+    vscode.window.showInformationMessage('Comware Omni Code extension is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('comware-omni-code.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Comware Omni!');
-	});
+    // Register commands
+    const helloWorldCommand = vscode.commands.registerCommand('comware-omni-code.helloWorld', () => {
+        vscode.window.showInformationMessage('Hello World from Comware Omni Code!');
+    });
 
-	context.subscriptions.push(disposable);
+    const showStatusCommand = vscode.commands.registerCommand('comware-omni-code.showStatus', () => {
+        vscode.window.showInformationMessage('Comware Omni Code extension is running and active!');
+    });
+
+    const completionProvider = new CompletionProvider();
+
+    const providerRegistration = vscode.languages.registerCompletionItemProvider(
+        { scheme: 'file', language: '*' },
+        completionProvider,
+        ...[' ', '.', '(', "'", '"']
+    );
+
+    context.subscriptions.push(
+        helloWorldCommand,
+        showStatusCommand,
+        providerRegistration
+    );
 }
 
-// This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+    console.log('Comware Omni Code extension is now deactivated');
+}

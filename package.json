@@ -2,6 +2,7 @@
   "name": "comware-omni-code",
   "displayName": "Comware Omni",
   "description": "",
+  "publisher": "comware",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.102.0"
@@ -9,15 +10,53 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "*"
+  ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "comware-omni-code.helloWorld",
-        "title": "Hello World"
+        "title": "Hello World",
+        "category": "Comware Omni"
+      },
+      {
+        "command": "comware-omni-code.showStatus",
+        "title": "Show Extension Status",
+        "category": "Comware Omni"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Comware Omni Code",
+      "properties": {
+        "comware-omni-code.apiUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1/completions",
+          "description": "The API URL for the OpenAI completion service."
+        },
+        "comware-omni-code.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your API key for the OpenAI service."
+        },
+        "comware-omni-code.model": {
+          "type": "string",
+          "default": "text-davinci-003",
+          "description": "The model to use for code completion."
+        },
+        "comware-omni-code.maxTokens": {
+          "type": "number",
+          "default": 50,
+          "description": "The maximum number of tokens to generate in the completion."
+        },
+        "comware-omni-code.temperature": {
+          "type": "number",
+          "default": 0.5,
+          "description": "What sampling temperature to use. Higher values means the model will take more risks."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run compile",
@@ -26,6 +65,10 @@
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
     "test": "vscode-test"
+  },
+  "dependencies": {
+    "@types/ws": "^8.18.1",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",
