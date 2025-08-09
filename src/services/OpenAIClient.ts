@@ -1,49 +1,56 @@
-import { CompletionRequest, CompletionResponse } from '../types';
+import { CompletionRequest, CompletionResponse, ChatMessage } from '../types';
 import { ConfigurationService } from './ConfigurationService';
 
 export class OpenAIClient {
     private configService: ConfigurationService;
-    private apiUrl: string;
-    private apiKey: string;
 
     constructor() {
         this.configService = ConfigurationService.getInstance();
-        const apiKey = this.configService.getApiKey();
-        this.apiUrl = this.configService.getApiUrl();
-
-        if (!apiKey) {
-            throw new Error('OpenAI API key not found. Please set it in the settings.');
-        }
-        
-        this.apiKey = apiKey;
     }
 
     public async getCompletion(prompt: string): Promise<string | undefined> {
         try {
+            const messages: ChatMessage[] = [
+                {
+                    role: 'system',
+                    content: 'You are a helpful code completion assistant. Provide concise, accurate code completions based on the given context.'
+                },
+                {
+                    role: 'user',
+                    content: `Complete this code: ${prompt}`
+                }
+            ];
+
             const request: CompletionRequest = {
                 model: this.configService.getModel(),
-                prompt: prompt,
+                messages: messages,
                 max_tokens: this.configService.getMaxTokens(),
                 temperature: this.configService.getTemperature(),
             };
 
-            const response = await fetch(this.apiUrl, {
+            const apiKey = this.configService.getApiKey();
+            if (!apiKey) {
+                throw new Error('OpenAI API key not found. Please set it in the settings.');
+            }
+
+            const response = await fetch(this.configService.getApiUrl(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${this.apiKey}`
+                    'Authorization': `Bearer ${apiKey}`
                 },
                 body: JSON.stringify(request)
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
             }
 
             const data = await response.json() as CompletionResponse;
 
             if (data.choices && data.choices.length > 0) {
-                return data.choices[0].text;
+                return data.choices[0].message.content;
             }
         } catch (error) {
             console.error('Error getting completion from OpenAI:', error);

@@ -17,7 +17,7 @@ export class ConfigurationService {
     }
 
     public getApiUrl(): string {
-        return this.getConfig().get<string>('apiUrl') || 'https://api.openai.com/v1/completions';
+        return this.getConfig().get<string>('apiUrl') || 'https://api.openai.com/v1/chat/completions';
     }
 
     public getApiKey(): string | undefined {
@@ -25,7 +25,7 @@ export class ConfigurationService {
     }
 
     public getModel(): string {
-        return this.getConfig().get<string>('model') || 'text-davinci-003';
+        return this.getConfig().get<string>('model') || 'gpt-3.5-turbo';
     }
 
     public getMaxTokens(): number {
