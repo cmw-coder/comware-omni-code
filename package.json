@@ -27,6 +27,16 @@
         "category": "Comware Omni"
       }
     ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "comware-omni-code.helloWorld"
+        },
+        {
+          "command": "comware-omni-code.showStatus"
+        }
+      ]
+    },
     "configuration": {
       "title": "Comware Omni Code",
       "properties": {

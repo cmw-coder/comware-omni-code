@@ -2,10 +2,17 @@ import * as vscode from 'vscode';
 import { CompletionProvider } from './providers/CompletionProvider';
 
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Congratulations, your extension "comware-omni-code" is now active!');
+    console.log('[comware-omni-code] Extension activated');
 
     // Show a notification to confirm activation
     vscode.window.showInformationMessage('Comware Omni Code extension is now active!');
+
+    // Create status bar item
+    const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    statusBarItem.text = "$(copilot) Comware Omni";
+    statusBarItem.tooltip = "Comware Omni Code is active";
+    statusBarItem.command = 'comware-omni-code.showStatus';
+    statusBarItem.show();
 
     // Register commands
     const helloWorldCommand = vscode.commands.registerCommand('comware-omni-code.helloWorld', () => {
@@ -25,6 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     context.subscriptions.push(
+        statusBarItem,
         helloWorldCommand,
         showStatusCommand,
         providerRegistration
@@ -32,5 +40,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-    console.log('Comware Omni Code extension is now deactivated');
+    console.log('[comware-omni-code] Extension deactivated');
 }
