@@ -13,11 +13,11 @@ export class OpenAIClient {
             const messages: ChatMessage[] = [
                 {
                     role: 'system',
-                    content: 'You are a helpful code completion assistant. Provide concise, accurate code completions based on the given context.'
+                    content: 'You are a code completion assistant. Complete the given code snippet with the most likely continuation. Provide only the completion part, not the entire code. Keep it concise and relevant to the context.'
                 },
                 {
                     role: 'user',
-                    content: `Complete this code: ${prompt}`
+                    content: `Please complete this code. Only provide the completion part that should come next:\n\n${prompt}`
                 }
             ];
 

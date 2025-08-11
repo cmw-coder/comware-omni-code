@@ -42,8 +42,8 @@
       "properties": {
         "comware-omni-code.apiUrl": {
           "type": "string",
-          "default": "https://api.openai.com/v1/completions",
-          "description": "The API URL for the OpenAI completion service."
+          "default": "https://api.openai.com/v1/chat/completions",
+          "description": "The API URL for the OpenAI chat completions service."
         },
         "comware-omni-code.apiKey": {
           "type": "string",
@@ -52,7 +52,7 @@
         },
         "comware-omni-code.model": {
           "type": "string",
-          "default": "text-davinci-003",
+          "default": "gpt-3.5-turbo",
           "description": "The model to use for code completion."
         },
         "comware-omni-code.maxTokens": {

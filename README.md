@@ -1,31 +1,56 @@
-# comware-omni-code README
+# Comware Omni Code
 
-This is the README for your extension "comware-omni-code". After writing up a brief description, we recommend including the following sections.
+Comware Omni Code 是一个基于 AI 的代码补全扩展，提供类似 GitHub Copilot 的内联代码补全体验。
 
-## Features
+## 功能特性
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- 🤖 **智能代码补全**: 基于 OpenAI GPT 模型的智能代码建议
+- 💡 **内联显示**: 代码建议以灰色文本显示在光标后方，无需弹出菜单
+- 🌐 **多语言支持**: 支持所有编程语言
+- ⚙️ **可配置**: 支持自定义 API 端点、模型和参数
+- 🎯 **上下文感知**: 基于当前文件的上下文提供相关建议
 
-For example if there is an image subfolder under your extension project workspace:
+## 快速开始
 
-\!\[feature X\]\(images/feature-x.png\)
+1. **安装扩展**: 在 VS Code 扩展市场搜索并安装 "Comware Omni Code"
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+2. **配置 API**: 打开 VS Code 设置 (Ctrl+,)，搜索 "comware-omni-code"，设置您的 OpenAI API 密钥
 
-## Requirements
+3. **开始使用**: 在任何代码文件中开始输入，观察灰色的内联补全提示
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+4. **接受补全**: 按 Tab 键接受内联补全建议
 
-## Extension Settings
+## 配置选项
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+本扩展提供以下配置选项：
 
-For example:
+- `comware-omni-code.apiUrl`: OpenAI API 端点 URL
+- `comware-omni-code.apiKey`: OpenAI API 密钥 (必需)
+- `comware-omni-code.model`: 使用的 AI 模型 (默认: gpt-3.5-turbo)
+- `comware-omni-code.maxTokens`: 最大生成 token 数 (默认: 50)
+- `comware-omni-code.temperature`: 生成温度 (默认: 0.5)
 
-This extension contributes the following settings:
+## 使用示例
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+```javascript
+// 输入函数定义，AI 会建议函数体
+function calculateTotal(items) {
+    // AI 建议: return items.reduce((sum, item) => sum + item.price, 0);
+```
+
+```typescript
+// 输入类属性，AI 会建议相关方法
+class UserService {
+    private users: User[] = [];
+    
+    // 输入 "getUserBy" 后 AI 可能建议: "Id(id: string): User | undefined"
+```
+
+## 注意事项
+
+- 需要有效的 OpenAI API 密钥
+- 建议使用较新的 GPT 模型以获得更好的代码补全效果
+- 内联补全仅在行末显示，避免干扰现有代码编辑
 
 ## Known Issues
 

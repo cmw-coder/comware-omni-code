@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { CompletionProvider } from './providers/CompletionProvider';
+import { InlineCompletionProvider } from './providers/InlineCompletionProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('[comware-omni-code] Extension activated');
@@ -23,19 +23,18 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage('Comware Omni Code extension is running and active!');
     });
 
-    const completionProvider = new CompletionProvider();
+    const inlineCompletionProvider = new InlineCompletionProvider();
 
-    const providerRegistration = vscode.languages.registerCompletionItemProvider(
+    const inlineProviderRegistration = vscode.languages.registerInlineCompletionItemProvider(
         { scheme: 'file', language: '*' },
-        completionProvider,
-        ...[' ', '.', '(', "'", '"']
+        inlineCompletionProvider
     );
 
     context.subscriptions.push(
         statusBarItem,
         helloWorldCommand,
         showStatusCommand,
-        providerRegistration
+        inlineProviderRegistration
     );
 }
 
