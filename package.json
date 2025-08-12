@@ -25,6 +25,27 @@
         "command": "comware-omni-code.showStatus",
         "title": "Show Extension Status",
         "category": "Comware Omni"
+      },
+      {
+        "command": "comware-omni-code.openChatPanel",
+        "title": "Open Chat Panel",
+        "category": "Comware Omni",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "comware-omni-code.startChatSession",
+        "title": "Start Chat Session",
+        "category": "Comware Omni"
+      },
+      {
+        "command": "comware-omni-code.editCode",
+        "title": "Edit Code with AI",
+        "category": "Comware Omni"
+      },
+      {
+        "command": "comware-omni-code.runAgent",
+        "title": "Run AI Agent",
+        "category": "Comware Omni"
       }
     ],
     "menus": {
@@ -34,6 +55,44 @@
         },
         {
           "command": "comware-omni-code.showStatus"
+        },
+        {
+          "command": "comware-omni-code.openChatPanel"
+        },
+        {
+          "command": "comware-omni-code.startChatSession"
+        },
+        {
+          "command": "comware-omni-code.editCode"
+        },
+        {
+          "command": "comware-omni-code.runAgent"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "comware-omni-code.editCode",
+          "group": "comware-omni@1",
+          "when": "editorHasSelection"
+        }
+      ]
+    },
+    "views": {
+      "comware-omni-sidebar": [
+        {
+          "id": "comwareOmniChat",
+          "name": "Chat",
+          "when": "true",
+          "type": "webview"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "comware-omni-sidebar",
+          "title": "Comware Omni",
+          "icon": "$(robot)"
         }
       ]
     },

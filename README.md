@@ -1,96 +1,106 @@
 # Comware Omni Code
 
-Comware Omni Code 是一个基于 AI 的代码补全扩展，提供类似 GitHub Copilot 的内联代码补全体验。
+A VS Code extension that provides AI-powered code completion, chat assistance, code editing, and agent capabilities similar to GitHub Copilot.
 
-## 功能特性
+## Features
 
-- 🤖 **智能代码补全**: 基于 OpenAI GPT 模型的智能代码建议
-- 💡 **内联显示**: 代码建议以灰色文本显示在光标后方，无需弹出菜单
-- 🌐 **多语言支持**: 支持所有编程语言
-- ⚙️ **可配置**: 支持自定义 API 端点、模型和参数
-- 🎯 **上下文感知**: 基于当前文件的上下文提供相关建议
+### 🤖 Inline Code Completion
+- AI-powered code completions as you type
+- Context-aware suggestions
+- Supports multiple programming languages
 
-## 快速开始
+### 💬 Chat Panel
+- Interactive chat interface with AI assistant
+- Ask questions about code, get explanations, and receive coding help
+- Persistent conversation history
+- Located in the sidebar with the robot icon
 
-1. **安装扩展**: 在 VS Code 扩展市场搜索并安装 "Comware Omni Code"
+### ✏️ Code Editing
+- Select code and use AI to edit it based on instructions
+- Right-click on selected code and choose "Edit Code with AI"
+- Or use the Edit mode in the chat panel
 
-2. **配置 API**: 打开 VS Code 设置 (Ctrl+,)，搜索 "comware-omni-code"，设置您的 OpenAI API 密钥
+### 🎯 AI Agent
+- Describe complex tasks and let the AI agent help you plan and execute them
+- Use the Agent mode in the chat panel
+- Get detailed plans and code suggestions for development tasks
 
-3. **开始使用**: 在任何代码文件中开始输入，观察灰色的内联补全提示
+## Getting Started
 
-4. **接受补全**: 按 Tab 键接受内联补全建议
+1. **Configure API Settings**: 
+   - Open VS Code Settings (Ctrl+,)
+   - Search for "Comware Omni"
+   - Set your OpenAI API URL and API Key
+   - Configure model settings (default: gpt-3.5-turbo)
 
-## 配置选项
+2. **Open the Chat Panel**:
+   - Click the robot icon in the Activity Bar (left sidebar)
+   - Or use Command Palette (Ctrl+Shift+P) → "Comware Omni: Open Chat Panel"
 
-本扩展提供以下配置选项：
+3. **Use Different Modes**:
+   - **Chat**: Ask questions and get AI assistance
+   - **Edit**: Select code first, then describe how to modify it
+   - **Agent**: Describe complex tasks for AI planning and guidance
 
-- `comware-omni-code.apiUrl`: OpenAI API 端点 URL
-- `comware-omni-code.apiKey`: OpenAI API 密钥 (必需)
-- `comware-omni-code.model`: 使用的 AI 模型 (默认: gpt-3.5-turbo)
-- `comware-omni-code.maxTokens`: 最大生成 token 数 (默认: 50)
-- `comware-omni-code.temperature`: 生成温度 (默认: 0.5)
+## Commands
 
-## 使用示例
+- `Comware Omni: Open Chat Panel` - Opens the chat interface
+- `Comware Omni: Start Chat Session` - Opens chat panel with welcome message
+- `Comware Omni: Edit Code with AI` - Edit selected code with AI assistance
+- `Comware Omni: Run AI Agent` - Start an agent task
 
-```javascript
-// 输入函数定义，AI 会建议函数体
-function calculateTotal(items) {
-    // AI 建议: return items.reduce((sum, item) => sum + item.price, 0);
+## Settings
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `comware-omni-code.apiUrl` | `https://api.openai.com/v1/chat/completions` | OpenAI API endpoint |
+| `comware-omni-code.apiKey` | `""` | Your OpenAI API key |
+| `comware-omni-code.model` | `gpt-3.5-turbo` | AI model to use |
+| `comware-omni-code.maxTokens` | `50` | Maximum tokens for completions |
+| `comware-omni-code.temperature` | `0.5` | Sampling temperature |
+
+## Usage Examples
+
+### Chat Mode
+```
+User: How do I create a REST API in Express.js?
+AI: Here's how to create a basic REST API with Express.js...
 ```
 
-```typescript
-// 输入类属性，AI 会建议相关方法
-class UserService {
-    private users: User[] = [];
-    
-    // 输入 "getUserBy" 后 AI 可能建议: "Id(id: string): User | undefined"
+### Edit Mode
+1. Select some code in the editor
+2. Switch to Edit mode in the chat panel
+3. Type: "Add error handling to this function"
+4. The AI will modify your selected code
+
+### Agent Mode
+```
+User: Help me build a todo app with React and localStorage
+AI: I'll help you build a todo app. Here's a comprehensive plan:
+1. Set up the React component structure
+2. Create state management for todos
+3. Implement localStorage persistence
+...
 ```
 
-## 注意事项
+## Development
 
-- 需要有效的 OpenAI API 密钥
-- 建议使用较新的 GPT 模型以获得更好的代码补全效果
-- 内联补全仅在行末显示，避免干扰现有代码编辑
+To set up the development environment:
 
-## Known Issues
+1. Clone the repository
+2. Run `pnpm install` to install dependencies
+3. Run `pnpm run compile` to build the extension
+4. Press F5 to launch a new VS Code window with the extension
 
-Calling out known issues can help limit users opening duplicate issues against your extension.
+## Architecture
 
-## Release Notes
+The extension consists of several key components:
 
-Users appreciate release notes as you update your extension.
+- **InlineCompletionProvider**: Handles inline code completions
+- **ChatPanelService**: Manages the webview chat interface
+- **OpenAIClient**: Handles API communication with OpenAI
+- **ConfigurationService**: Manages extension settings
 
-### 1.0.0
+## License
 
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Following extension guidelines
-
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
-
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+[Add your license information here]
