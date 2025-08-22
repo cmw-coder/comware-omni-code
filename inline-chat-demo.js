@@ -109,11 +109,35 @@ const complexRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!
 /*
  * Inline Chat 测试指南:
  * 
- * 1. 选中任意函数，按 Ctrl+K Ctrl+I，输入: "重构这个函数使其更现代化"
- * 2. 选中 complexRegex，按 Ctrl+K Ctrl+I，输入: "解释这个正则表达式"
- * 3. 在空行处，按 Ctrl+K Ctrl+I，输入: "创建一个日期格式化函数"
- * 4. 选中 ShoppingCart 类，按 Ctrl+K Ctrl+I，输入: "使用现代ES6+语法重写"
- * 5. 选中 processUserData，按 Ctrl+K Ctrl+I，输入: "添加输入验证和错误处理"
+ * 🎯 真正的 Inline Chat 体验 (类似 GitHub Copilot):
  * 
- * 提示: 也可以右键点击代码选择 "Start Inline Chat" 或使用命令面板
+ * 1. 选中任意函数，按 Ctrl+K Ctrl+I
+ *    - 会在代码行之间插入输入框："💬 Ask AI: "
+ *    - 直接在输入框中输入: "重构这个函数使其更现代化"
+ *    - 按 Enter 提交
+ * 
+ * 2. 选中 complexRegex，按 Ctrl+K Ctrl+I
+ *    - 输入: "解释这个正则表达式"
+ *    - AI 会直接在代码中显示解释
+ * 
+ * 3. 在空行处，按 Ctrl+K Ctrl+I
+ *    - 输入: "创建一个日期格式化函数"
+ *    - AI 会在当前位置插入生成的代码
+ * 
+ * 4. 选中 ShoppingCart 类，按 Ctrl+K Ctrl+I
+ *    - 输入: "使用现代ES6+语法重写"
+ *    - 选择 Accept/Reject/Preview 来处理建议
+ * 
+ * 5. 选中 processUserData，按 Ctrl+K Ctrl+I
+ *    - 输入: "添加输入验证和错误处理"
+ *    - 代码建议会直接显示在下方
+ * 
+ * 💡 特性:
+ * - 真正的 inline 输入框 (不再使用 VS Code 顶部输入框)
+ * - 代码建议直接在编辑器中显示
+ * - 智能检测代码 vs 文本响应
+ * - Tab 接受建议，Esc 拒绝
+ * - 自动清理临时内容
+ * 
+ * 🚀 也可以右键点击代码选择 "Start Inline Chat" 或使用命令面板
  */

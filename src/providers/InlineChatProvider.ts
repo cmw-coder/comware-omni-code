@@ -4,10 +4,10 @@ import { OpenAIClient } from '../services/OpenAIClient';
 interface InlineChatSession {
     editor: vscode.TextEditor;
     decorations: vscode.TextEditorDecorationType[];
-    inputWidget?: vscode.InputBox;
     originalSelection: vscode.Selection;
     originalText: string;
-    responseRange?: vscode.Range;
+    chatPosition: vscode.Position;
+    insertedLineRange?: vscode.Range;
 }
 
 export class InlineChatProvider implements vscode.Disposable {
@@ -15,10 +15,20 @@ export class InlineChatProvider implements vscode.Disposable {
     private _activeSessions = new Map<string, InlineChatSession>();
     private _chatDecorationType: vscode.TextEditorDecorationType;
     private _suggestedCodeDecorationType: vscode.TextEditorDecorationType;
+    private _inlineInputDecorationType: vscode.TextEditorDecorationType;
 
     constructor(openAIClient: OpenAIClient) {
         this._openAIClient = openAIClient;
         
+        // Create decoration type for inline input widget
+        this._inlineInputDecorationType = vscode.window.createTextEditorDecorationType({
+            isWholeLine: true,
+            backgroundColor: new vscode.ThemeColor('input.background'),
+            border: '1px solid',
+            borderColor: new vscode.ThemeColor('input.border'),
+            borderRadius: '4px',
+        });
+
         // Create decoration types for inline chat
         this._chatDecorationType = vscode.window.createTextEditorDecorationType({
             backgroundColor: new vscode.ThemeColor('editor.inlineHintBackground'),
@@ -26,7 +36,7 @@ export class InlineChatProvider implements vscode.Disposable {
             borderColor: new vscode.ThemeColor('editor.inlineHintBorder'),
             borderRadius: '4px',
             after: {
-                contentText: ' ✨ AI Chat',
+                contentText: ' ✨ AI Chat Active',
                 color: new vscode.ThemeColor('editor.inlineHintForeground'),
                 fontWeight: 'bold',
                 margin: '0 0 0 4px'
@@ -39,7 +49,7 @@ export class InlineChatProvider implements vscode.Disposable {
             borderColor: new vscode.ThemeColor('diffEditor.insertedTextBorder'),
             borderRadius: '3px',
             after: {
-                contentText: ' ✨ AI Suggestion - Press Tab to accept, Esc to reject',
+                contentText: ' ✨ AI Suggestion - Tab to accept, Esc to reject',
                 color: new vscode.ThemeColor('editorSuggestWidget.foreground'),
                 backgroundColor: new vscode.ThemeColor('editorSuggestWidget.background'),
                 fontStyle: 'italic'
@@ -55,76 +65,125 @@ export class InlineChatProvider implements vscode.Disposable {
         }
 
         const sessionId = `${editor.document.uri.toString()}-${Date.now()}`;
+        const position = editor.selection.active;
+        
         const session: InlineChatSession = {
             editor,
             decorations: [],
             originalSelection: editor.selection,
-            originalText: editor.document.getText(editor.selection)
+            originalText: editor.document.getText(editor.selection),
+            chatPosition: position
         };
 
         this._activeSessions.set(sessionId, session);
 
         try {
-            await this._showInlineChatInput(sessionId, session);
+            await this._showInlineInputWidget(sessionId, session);
         } catch (error) {
             this._cleanupSession(sessionId);
             vscode.window.showErrorMessage(`Inline chat error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
-    private async _showInlineChatInput(sessionId: string, session: InlineChatSession): Promise<void> {
-        const position = session.editor.selection.active;
+    private async _showInlineInputWidget(sessionId: string, session: InlineChatSession): Promise<void> {
+        const { editor, chatPosition } = session;
         
-        // Add chat decoration to show where the chat is active
-        const decoration = {
-            range: new vscode.Range(position, position),
-            hoverMessage: 'Inline Chat Active'
-        };
-        session.editor.setDecorations(this._chatDecorationType, [decoration]);
-
-        // Show input box
-        const input = await vscode.window.showInputBox({
-            prompt: '💬 Inline Chat - What would you like me to help you with?',
-            placeHolder: 'Ask me to edit, explain, refactor, or generate code...',
-            title: 'AI Inline Chat',
-            ignoreFocusOut: false
+        // Insert a new line for the inline chat widget
+        const insertPosition = new vscode.Position(chatPosition.line + 1, 0);
+        
+        await editor.edit((editBuilder: vscode.TextEditorEdit) => {
+            editBuilder.insert(insertPosition, '💬 Ask AI: \n');
         });
 
-        // Clear chat decoration
-        session.editor.setDecorations(this._chatDecorationType, []);
+        // Update the inserted line range
+        const insertedLineStart = new vscode.Position(chatPosition.line + 1, 0);
+        const insertedLineEnd = new vscode.Position(chatPosition.line + 1, 11); // Length of "💬 Ask AI: "
+        session.insertedLineRange = new vscode.Range(insertedLineStart, insertedLineEnd);
 
-        if (!input) {
-            this._cleanupSession(sessionId);
-            return;
-        }
+        // Move cursor to the end of the inserted text
+        const newCursorPosition = new vscode.Position(chatPosition.line + 1, 11);
+        editor.selection = new vscode.Selection(newCursorPosition, newCursorPosition);
 
-        await this._processInlineChatInput(sessionId, session, input);
+        // Create decoration for the input line
+        const decoration = {
+            range: session.insertedLineRange,
+            hoverMessage: 'Type your question here and press Enter'
+        };
+        editor.setDecorations(this._inlineInputDecorationType, [decoration]);
+
+        // Wait for user input via keyboard
+        await this._waitForUserInput(sessionId, session);
+    }
+
+    private async _waitForUserInput(sessionId: string, session: InlineChatSession): Promise<void> {
+        const { editor } = session;
+        
+        return new Promise<void>((resolve) => {
+            let disposable: vscode.Disposable;
+            
+            const handleKeyPress = async (e: vscode.TextDocumentChangeEvent) => {
+                if (e.document !== editor.document) return;
+                
+                const change = e.contentChanges[0];
+                if (!change) return;
+
+                // Check if user pressed Enter on the input line
+                if (change.text.includes('\n') && session.insertedLineRange) {
+                    const inputLine = editor.document.lineAt(session.insertedLineRange.start.line);
+                    const inputText = inputLine.text.replace('💬 Ask AI: ', '').trim();
+                    
+                    if (inputText.length > 0) {
+                        disposable.dispose();
+                        
+                        // Clear the decoration
+                        editor.setDecorations(this._inlineInputDecorationType, []);
+                        
+                        // Replace the input line with just the prompt text
+                        await editor.edit((editBuilder: vscode.TextEditorEdit) => {
+                            if (session.insertedLineRange) {
+                                const fullLineRange = new vscode.Range(
+                                    session.insertedLineRange.start,
+                                    new vscode.Position(session.insertedLineRange.start.line + 1, 0)
+                                );
+                                editBuilder.replace(fullLineRange, `💬 AI is thinking...\n`);
+                            }
+                        });
+
+                        // Process the input
+                        await this._processInlineChatInput(sessionId, session, inputText);
+                        resolve();
+                    }
+                }
+            };
+
+            disposable = vscode.workspace.onDidChangeTextDocument(handleKeyPress);
+            
+            // Also listen for escape key to cancel
+            const disposableCommand = vscode.commands.registerCommand('extension.cancelInlineChat', () => {
+                disposable.dispose();
+                disposableCommand.dispose();
+                this._removeInsertedLine(session);
+                this._cleanupSession(sessionId);
+                resolve();
+            });
+        });
     }
 
     private async _processInlineChatInput(sessionId: string, session: InlineChatSession, input: string): Promise<void> {
-        // Show progress
-        await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: '🤖 AI is thinking...',
-            cancellable: true
-        }, async (progress, token) => {
-            try {
-                const response = await this._getAIResponse(session, input, token);
-                
-                if (token.isCancellationRequested) {
-                    return;
-                }
-
-                if (response) {
-                    await this._handleInlineChatResponse(sessionId, session, input, response);
-                }
-            } catch (error) {
-                throw error;
+        try {
+            const response = await this._getAIResponse(session, input);
+            
+            if (response) {
+                await this._handleInlineChatResponse(sessionId, session, input, response);
             }
-        });
+        } catch (error) {
+            await this._removeInsertedLine(session);
+            this._cleanupSession(sessionId);
+            vscode.window.showErrorMessage(`AI request failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
     }
 
-    private async _getAIResponse(session: InlineChatSession, input: string, token: vscode.CancellationToken): Promise<string | null> {
+    private async _getAIResponse(session: InlineChatSession, input: string): Promise<string | null> {
         const { editor, originalSelection } = session;
         const document = editor.document;
         
@@ -154,10 +213,6 @@ export class InlineChatProvider implements vscode.Disposable {
 - Do not include markdown code blocks unless specifically requested
 
 Response:`;
-
-        if (token.isCancellationRequested) {
-            return null;
-        }
 
         try {
             return await this._openAIClient.getChatCompletion(fullPrompt, []);
@@ -201,7 +256,7 @@ Response:`;
     }
 
     private async _showCodeSuggestion(sessionId: string, session: InlineChatSession, suggestedCode: string): Promise<void> {
-        const { editor, originalSelection } = session;
+        const { editor } = session;
         
         // Clean the suggested code (remove markdown if present)
         let cleanCode = suggestedCode.trim();
@@ -210,109 +265,94 @@ Response:`;
             cleanCode = codeBlockMatch[1].trim();
         }
         
-        // Calculate the range where the suggestion will be placed
-        let suggestionRange: vscode.Range;
-        if (originalSelection.isEmpty) {
-            // Insert at cursor
-            suggestionRange = new vscode.Range(originalSelection.start, originalSelection.start);
-        } else {
-            // Replace selection
-            suggestionRange = originalSelection;
-        }
-        
-        // Store the suggestion range for later use
-        session.responseRange = suggestionRange;
-        
-        // Apply temporary decoration to show the suggestion
-        const decoration = {
-            range: suggestionRange,
-            hoverMessage: new vscode.MarkdownString(`**AI Suggestion:**\n\n\`\`\`${editor.document.languageId}\n${cleanCode}\n\`\`\`\n\n*Press **Tab** to accept, **Esc** to reject*`)
-        };
-        
-        editor.setDecorations(this._suggestedCodeDecorationType, [decoration]);
-        
-        // Show quick pick for actions
-        const action = await vscode.window.showQuickPick([
-            {
-                label: '$(check) Accept',
-                description: 'Apply the AI suggestion',
-                detail: 'Tab',
-                action: 'accept'
-            },
-            {
-                label: '$(x) Reject',
-                description: 'Discard the suggestion',
-                detail: 'Esc',
-                action: 'reject'
-            },
-            {
-                label: '$(eye) Preview',
-                description: 'Show full suggestion in new document',
-                detail: '',
-                action: 'preview'
-            },
-            {
-                label: '$(edit) Modify',
-                description: 'Ask for a modification',
-                detail: '',
-                action: 'modify'
+        // Replace the "thinking" line with the suggestion
+        await editor.edit((editBuilder: vscode.TextEditorEdit) => {
+            if (session.insertedLineRange) {
+                const fullLineRange = new vscode.Range(
+                    session.insertedLineRange.start,
+                    new vscode.Position(session.insertedLineRange.start.line + 1, 0)
+                );
+                editBuilder.replace(fullLineRange, `✨ AI Suggestion (Tab=accept, Esc=reject):\n${cleanCode}\n\n`);
             }
+        });
+
+        // Apply decoration to the suggested code
+        const suggestionStartLine = session.insertedLineRange!.start.line + 1;
+        const codeLines = cleanCode.split('\n').length;
+        const suggestionRange = new vscode.Range(
+            new vscode.Position(suggestionStartLine, 0),
+            new vscode.Position(suggestionStartLine + codeLines - 1, cleanCode.split('\n')[codeLines - 1].length)
+        );
+        
+        editor.setDecorations(this._suggestedCodeDecorationType, [{
+            range: suggestionRange,
+            hoverMessage: 'Press Tab to accept, Esc to reject'
+        }]);
+
+        // Wait for user action
+        await this._waitForUserAction(sessionId, session, cleanCode, suggestionRange);
+    }
+
+    private async _waitForUserAction(sessionId: string, session: InlineChatSession, suggestedCode: string, suggestionRange: vscode.Range): Promise<void> {
+        // Show quick pick for user action
+        const action = await vscode.window.showQuickPick([
+            { label: '$(check) Accept', action: 'accept' },
+            { label: '$(x) Reject', action: 'reject' },
+            { label: '$(eye) Preview in new file', action: 'preview' }
         ], {
-            placeHolder: 'Choose an action for the AI suggestion',
+            placeHolder: 'Choose action for AI suggestion',
             ignoreFocusOut: false
         });
-        
-        // Clear decoration
-        editor.setDecorations(this._suggestedCodeDecorationType, []);
         
         if (action) {
             switch (action.action) {
                 case 'accept':
-                    await this._applySuggestion(sessionId, session, cleanCode);
+                    await this._applySuggestion(sessionId, session, suggestedCode);
                     break;
                 case 'preview':
-                    await this._previewSuggestion(cleanCode, editor.document.languageId);
+                    await this._previewSuggestion(suggestedCode, session.editor.document.languageId);
+                    await this._removeInsertedLine(session);
                     this._cleanupSession(sessionId);
                     break;
-                case 'modify':
-                    await this._modifySuggestion(sessionId, session, cleanCode);
-                    break;
                 default:
+                    await this._removeInsertedLine(session);
                     this._cleanupSession(sessionId);
                     break;
             }
         } else {
+            await this._removeInsertedLine(session);
             this._cleanupSession(sessionId);
         }
     }
 
     private async _showTextResponse(sessionId: string, session: InlineChatSession, response: string): Promise<void> {
-        if (response.length > 300) {
-            // Long response - show in new document
-            await this._previewSuggestion(response, 'markdown');
-        } else {
-            // Short response - show in notification with option to view full
-            const action = await vscode.window.showInformationMessage(
-                response,
-                'View Full Response',
-                'Ask Follow-up'
-            );
-            
-            if (action === 'View Full Response') {
-                await this._previewSuggestion(response, 'markdown');
-            } else if (action === 'Ask Follow-up') {
-                // Continue the conversation
-                await this._showInlineChatInput(sessionId, session);
-                return;
-            }
-        }
+        const { editor } = session;
         
-        this._cleanupSession(sessionId);
+        // Replace the "thinking" line with the response
+        await editor.edit((editBuilder: vscode.TextEditorEdit) => {
+            if (session.insertedLineRange) {
+                const fullLineRange = new vscode.Range(
+                    session.insertedLineRange.start,
+                    new vscode.Position(session.insertedLineRange.start.line + 1, 0)
+                );
+                editBuilder.replace(fullLineRange, `🤖 AI: ${response}\n\n`);
+            }
+        });
+
+        // Auto-cleanup after a few seconds
+        setTimeout(() => {
+            this._removeInsertedLine(session);
+            this._cleanupSession(sessionId);
+        }, 5000);
     }
 
     private async _applySuggestion(sessionId: string, session: InlineChatSession, code: string): Promise<void> {
         const { editor, originalSelection } = session;
         
+        // First remove the inserted lines
+        await this._removeInsertedLine(session);
+        
+        // Then apply the code
         await editor.edit((editBuilder: vscode.TextEditorEdit) => {
             if (originalSelection.isEmpty) {
                 editBuilder.insert(originalSelection.start, code);
@@ -321,7 +361,7 @@ Response:`;
             }
         });
         
-        vscode.window.showInformationMessage('✅ AI suggestion applied successfully!');
+        vscode.window.showInformationMessage('✅ AI suggestion applied!');
         this._cleanupSession(sessionId);
     }
 
@@ -333,21 +373,36 @@ Response:`;
         await vscode.window.showTextDocument(document, vscode.ViewColumn.Beside);
     }
 
-    private async _modifySuggestion(sessionId: string, session: InlineChatSession, currentSuggestion: string): Promise<void> {
-        const modification = await vscode.window.showInputBox({
-            prompt: '💬 How should I modify the suggestion?',
-            placeHolder: 'Describe the changes you want...',
-            title: 'Modify AI Suggestion'
-        });
+    private async _removeInsertedLine(session: InlineChatSession): Promise<void> {
+        const { editor, insertedLineRange } = session;
         
-        if (!modification) {
-            this._cleanupSession(sessionId);
-            return;
+        if (!insertedLineRange) return;
+
+        // Find the actual range to delete (may have grown due to multiple lines)
+        const startLine = insertedLineRange.start.line;
+        const document = editor.document;
+        let endLine = startLine;
+        
+        // Find where our inserted content ends
+        while (endLine < document.lineCount) {
+            const line = document.lineAt(endLine);
+            if (line.text.includes('💬') || line.text.includes('🤖') || line.text.includes('✨')) {
+                endLine++;
+            } else if (line.text.trim() === '') {
+                endLine++;
+                break;
+            } else {
+                break;
+            }
         }
-        
-        const modificationPrompt = `Here's the current suggestion:\n\`\`\`\n${currentSuggestion}\n\`\`\`\n\nUser wants to modify it: ${modification}\n\nProvide the modified code:`;
-        
-        await this._processInlineChatInput(sessionId, session, modificationPrompt);
+
+        await editor.edit((editBuilder: vscode.TextEditorEdit) => {
+            const rangeToDelete = new vscode.Range(
+                new vscode.Position(startLine, 0),
+                new vscode.Position(endLine, 0)
+            );
+            editBuilder.delete(rangeToDelete);
+        });
     }
 
     private _cleanupSession(sessionId: string): void {
@@ -356,6 +411,7 @@ Response:`;
             // Clear any decorations
             session.editor.setDecorations(this._chatDecorationType, []);
             session.editor.setDecorations(this._suggestedCodeDecorationType, []);
+            session.editor.setDecorations(this._inlineInputDecorationType, []);
             
             // Remove session
             this._activeSessions.delete(sessionId);
@@ -371,5 +427,6 @@ Response:`;
         // Dispose decoration types
         this._chatDecorationType.dispose();
         this._suggestedCodeDecorationType.dispose();
+        this._inlineInputDecorationType.dispose();
     }
 }

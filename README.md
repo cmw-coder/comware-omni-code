@@ -5,11 +5,11 @@ A VS Code extension that provides AI-powered code completion, chat assistance, c
 ## Features
 
 ### 🚀 Inline Chat (NEW!)
-- **GitHub Copilot-style inline chat** directly in your editor
-- Press `Ctrl+K Ctrl+I` to start chatting with AI at cursor position
-- Get instant code suggestions, explanations, and modifications
-- Visual preview of suggestions with accept/reject options
-- Context-aware conversations based on your current code
+- **GitHub Copilot风格的真正inline chat** - 输入框直接在代码行之间显示
+- Press `Ctrl+K Ctrl+I` 在光标位置启动inline输入框
+- 直接在编辑器中输入问题并按Enter提交
+- 代码建议和解释直接在编辑器中显示
+- Tab接受建议，Esc拒绝，完全无缝的体验
 
 ### 🤖 Inline Code Completion
 - AI-powered code completions as you type
@@ -36,9 +36,10 @@ A VS Code extension that provides AI-powered code completion, chat assistance, c
 
 ### 🔥 Try Inline Chat (Recommended)
 1. Open any code file
-2. Press `Ctrl+K Ctrl+I` (or `Cmd+K Cmd+I` on Mac)
-3. Ask AI to help: "Refactor this function" or "Add error handling"
-4. Get instant suggestions with visual preview!
+2. Press `Ctrl+K Ctrl+I` (or `Cmd+K Ctrl+I` on Mac)
+3. See the input box appear directly between code lines: "💬 Ask AI: "
+4. Type your question: "Refactor this function" or "Add error handling"
+5. Press Enter and watch AI suggestions appear inline!
 
 ### 📋 Other Ways to Get Started
 
