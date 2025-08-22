@@ -46,6 +46,12 @@
         "command": "comware-omni-code.runAgent",
         "title": "Run AI Agent",
         "category": "Comware Omni"
+      },
+      {
+        "command": "comware-omni-code.inlineChat",
+        "title": "Start Inline Chat",
+        "category": "Comware Omni",
+        "icon": "$(comment-discussion)"
       }
     ],
     "menus": {
@@ -67,6 +73,9 @@
         },
         {
           "command": "comware-omni-code.runAgent"
+        },
+        {
+          "command": "comware-omni-code.inlineChat"
         }
       ],
       "editor/context": [
@@ -74,9 +83,22 @@
           "command": "comware-omni-code.editCode",
           "group": "comware-omni@1",
           "when": "editorHasSelection"
+        },
+        {
+          "command": "comware-omni-code.inlineChat",
+          "group": "comware-omni@2",
+          "when": "editorTextFocus"
         }
       ]
     },
+    "keybindings": [
+      {
+        "command": "comware-omni-code.inlineChat",
+        "key": "ctrl+k ctrl+i",
+        "mac": "cmd+k cmd+i",
+        "when": "editorTextFocus"
+      }
+    ],
     "views": {
       "comware-omni-sidebar": [
         {

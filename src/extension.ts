@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { InlineCompletionProvider } from './providers/InlineCompletionProvider';
+import { AdvancedInlineChatProvider } from './providers/AdvancedInlineChatProvider';
 import { ChatPanelService } from './services/ChatPanelService';
 import { OpenAIClient } from './services/OpenAIClient';
 
@@ -11,6 +12,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create OpenAI client instance
     const openAIClient = new OpenAIClient();
+
+    // Create advanced inline chat provider
+    const advancedInlineChatProvider = new AdvancedInlineChatProvider(openAIClient);
 
     // Create status bar item
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -73,7 +77,7 @@ export function activate(context: vscode.ExtensionContext) {
             const prompt = `Edit the following code according to this instruction: "${instruction}"\n\nCode:\n${selectedText}\n\nReturn only the modified code without any explanation.`;
             const editedCode = await openAIClient.getChatCompletion(prompt, []);
             
-            await editor.edit(editBuilder => {
+            await editor.edit((editBuilder: vscode.TextEditorEdit) => {
                 editBuilder.replace(selection, editedCode);
             });
 
@@ -100,6 +104,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(`AI Agent is working on: ${task}`);
     });
 
+    const inlineChatCommand = vscode.commands.registerCommand('comware-omni-code.inlineChat', async () => {
+        await advancedInlineChatProvider.startInlineChat();
+    });
+
     const inlineCompletionProvider = new InlineCompletionProvider();
 
     const inlineProviderRegistration = vscode.languages.registerInlineCompletionItemProvider(
@@ -115,8 +123,10 @@ export function activate(context: vscode.ExtensionContext) {
         startChatSessionCommand,
         editCodeCommand,
         runAgentCommand,
+        inlineChatCommand,
         inlineProviderRegistration,
-        chatPanelProvider
+        chatPanelProvider,
+        advancedInlineChatProvider
     );
 }
 

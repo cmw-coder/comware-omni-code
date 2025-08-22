@@ -6,6 +6,7 @@
 
 function calculateArea(radius) {
     // 在这里输入 "return Math." 看看补全建议
+    
 }
 
 const users = [

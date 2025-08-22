@@ -4,6 +4,13 @@ A VS Code extension that provides AI-powered code completion, chat assistance, c
 
 ## Features
 
+### 🚀 Inline Chat (NEW!)
+- **GitHub Copilot-style inline chat** directly in your editor
+- Press `Ctrl+K Ctrl+I` to start chatting with AI at cursor position
+- Get instant code suggestions, explanations, and modifications
+- Visual preview of suggestions with accept/reject options
+- Context-aware conversations based on your current code
+
 ### 🤖 Inline Code Completion
 - AI-powered code completions as you type
 - Context-aware suggestions
@@ -25,7 +32,15 @@ A VS Code extension that provides AI-powered code completion, chat assistance, c
 - Use the Agent mode in the chat panel
 - Get detailed plans and code suggestions for development tasks
 
-## Getting Started
+## Quick Start
+
+### 🔥 Try Inline Chat (Recommended)
+1. Open any code file
+2. Press `Ctrl+K Ctrl+I` (or `Cmd+K Cmd+I` on Mac)
+3. Ask AI to help: "Refactor this function" or "Add error handling"
+4. Get instant suggestions with visual preview!
+
+### 📋 Other Ways to Get Started
 
 1. **Configure API Settings**: 
    - Open VS Code Settings (Ctrl+,)
@@ -38,12 +53,17 @@ A VS Code extension that provides AI-powered code completion, chat assistance, c
    - Or use Command Palette (Ctrl+Shift+P) → "Comware Omni: Open Chat Panel"
 
 3. **Use Different Modes**:
-   - **Chat**: Ask questions and get AI assistance
+   - **Inline Chat**: `Ctrl+K Ctrl+I` for instant AI assistance
+   - **Chat Panel**: Ask questions and get AI assistance
    - **Edit**: Select code first, then describe how to modify it
    - **Agent**: Describe complex tasks for AI planning and guidance
 
 ## Commands
 
+### 🔥 Inline Chat Commands
+- `Comware Omni: Start Inline Chat` (`Ctrl+K Ctrl+I`) - GitHub Copilot-style inline chat
+
+### 💬 Panel & Editing Commands
 - `Comware Omni: Open Chat Panel` - Opens the chat interface
 - `Comware Omni: Start Chat Session` - Opens chat panel with welcome message
 - `Comware Omni: Edit Code with AI` - Edit selected code with AI assistance
