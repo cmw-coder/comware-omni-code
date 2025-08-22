@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { InlineCompletionProvider } from './providers/InlineCompletionProvider';
-import { AdvancedInlineChatProvider } from './providers/AdvancedInlineChatProvider';
+import { InlineChatProvider } from './providers/InlineChatProvider';
 import { ChatPanelService } from './services/ChatPanelService';
 import { OpenAIClient } from './services/OpenAIClient';
 
@@ -13,8 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Create OpenAI client instance
     const openAIClient = new OpenAIClient();
 
-    // Create advanced inline chat provider
-    const advancedInlineChatProvider = new AdvancedInlineChatProvider(openAIClient);
+    // Create inline chat provider
+    const inlineChatProvider = new InlineChatProvider(openAIClient);
 
     // Create status bar item
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -105,7 +105,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     const inlineChatCommand = vscode.commands.registerCommand('comware-omni-code.inlineChat', async () => {
-        await advancedInlineChatProvider.startInlineChat();
+        await inlineChatProvider.startInlineChat();
     });
 
     const inlineCompletionProvider = new InlineCompletionProvider();
@@ -126,7 +126,7 @@ export function activate(context: vscode.ExtensionContext) {
         inlineChatCommand,
         inlineProviderRegistration,
         chatPanelProvider,
-        advancedInlineChatProvider
+        inlineChatProvider
     );
 }
 

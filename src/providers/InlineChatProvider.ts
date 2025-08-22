@@ -10,7 +10,7 @@ interface InlineChatSession {
     responseRange?: vscode.Range;
 }
 
-export class AdvancedInlineChatProvider implements vscode.Disposable {
+export class InlineChatProvider implements vscode.Disposable {
     private _openAIClient: OpenAIClient;
     private _activeSessions = new Map<string, InlineChatSession>();
     private _chatDecorationType: vscode.TextEditorDecorationType;
