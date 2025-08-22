@@ -3,6 +3,7 @@ import { InlineCompletionProvider } from './providers/InlineCompletionProvider';
 import { InlineChatProvider } from './providers/InlineChatProvider';
 import { ChatPanelService } from './services/ChatPanelService';
 import { OpenAIClient } from './services/OpenAIClient';
+import { TempProvider } from './providers/TempProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('[comware-omni-code] Extension activated');
@@ -15,6 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     // Create inline chat provider
     const inlineChatProvider = new InlineChatProvider(openAIClient);
+
+    const tempProvider = new TempProvider();
 
     // Create status bar item
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -106,6 +109,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     const inlineChatCommand = vscode.commands.registerCommand('comware-omni-code.inlineChat', async () => {
         await inlineChatProvider.startInlineChat();
+    });
+    const tempCommand = vscode.commands.registerCommand('comware-omni-code.tempCommand', async () => {
+        await tempProvider.startInlineChat();
     });
 
     const inlineCompletionProvider = new InlineCompletionProvider();

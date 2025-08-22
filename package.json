@@ -5,7 +5,7 @@
   "publisher": "comware",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.102.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
@@ -52,6 +52,11 @@
         "title": "Start Inline Chat",
         "category": "Comware Omni",
         "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "comware-omni-code.tempCommand",
+        "title": "Start Temporary Chat",
+        "category": "Comware Omni"
       }
     ],
     "menus": {
@@ -76,6 +81,9 @@
         },
         {
           "command": "comware-omni-code.inlineChat"
+        },
+        {
+          "command": "comware-omni-code.tempCommand"
         }
       ],
       "editor/context": [
@@ -88,6 +96,11 @@
           "command": "comware-omni-code.inlineChat",
           "group": "comware-omni@2",
           "when": "editorTextFocus"
+        },
+        {
+          "command": "comware-omni-code.tempCommand",
+          "group": "comware-omni@3",
+          "when": "editorTextFocus"
         }
       ]
     },
@@ -96,6 +109,12 @@
         "command": "comware-omni-code.inlineChat",
         "key": "ctrl+k ctrl+i",
         "mac": "cmd+k cmd+i",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "comware-omni-code.tempCommand",
+        "key": "ctrl+alt+i",
+        "mac": "cmd+alt+i",
         "when": "editorTextFocus"
       }
     ],
@@ -155,7 +174,8 @@
     "watch": "tsc -watch -p ./",
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "package": "pnpm vsce package --no-dependencies"
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
@@ -164,11 +184,12 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "~20.19.8",
-    "@types/vscode": "^1.102.0",
+    "@types/vscode": "~1.100.0",
     "@typescript-eslint/eslint-plugin": "^8.37.0",
     "@typescript-eslint/parser": "^8.37.0",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.0",
     "eslint": "^9.31.0",
     "typescript": "^5.8.3"
   }
