@@ -97,47 +97,30 @@ const testUser = {
 // 复杂的正则表达式 - 需要解释
 const complexRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-// TODO: 使用 inline chat 功能来：
-// 1. 重构 calculateSum 函数使用现代 JavaScript
-// 2. 为 processUserData 添加错误处理
-// 3. 优化 bubbleSort 算法
-// 4. 实现 fetchUserData 函数
-// 5. 改进 ShoppingCart 类设计
-// 6. 解释 complexRegex 的作用
-// 7. 生成相应的单元测试
+// 新版内联聊天功能测试文件
+// 使用 Ctrl+K Ctrl+I 在光标位置触发内联聊天
 
-/*
- * Inline Chat 测试指南:
- * 
- * 🎯 真正的 Inline Chat 体验 (类似 GitHub Copilot):
- * 
- * 1. 选中任意函数，按 Ctrl+K Ctrl+I
- *    - 会在代码行之间插入输入框："💬 Ask AI: "
- *    - 直接在输入框中输入: "重构这个函数使其更现代化"
- *    - 按 Enter 提交
- * 
- * 2. 选中 complexRegex，按 Ctrl+K Ctrl+I
- *    - 输入: "解释这个正则表达式"
- *    - AI 会直接在代码中显示解释
- * 
- * 3. 在空行处，按 Ctrl+K Ctrl+I
- *    - 输入: "创建一个日期格式化函数"
- *    - AI 会在当前位置插入生成的代码
- * 
- * 4. 选中 ShoppingCart 类，按 Ctrl+K Ctrl+I
- *    - 输入: "使用现代ES6+语法重写"
- *    - 选择 Accept/Reject/Preview 来处理建议
- * 
- * 5. 选中 processUserData，按 Ctrl+K Ctrl+I
- *    - 输入: "添加输入验证和错误处理"
- *    - 代码建议会直接显示在下方
- * 
- * 💡 特性:
- * - 真正的 inline 输入框 (不再使用 VS Code 顶部输入框)
- * - 代码建议直接在编辑器中显示
- * - 智能检测代码 vs 文本响应
- * - Tab 接受建议，Esc 拒绝
- * - 自动清理临时内容
- * 
- * 🚀 也可以右键点击代码选择 "Start Inline Chat" 或使用命令面板
- */
+function calculateSum(a, b) {
+    // 光标放在这里，然后按 Ctrl+K Ctrl+I 尝试内联聊天
+    // 例如可以询问："添加参数验证"
+    return a + b;
+}
+
+class UserManager {
+    constructor() {
+        this.users = [];
+    }
+    
+    // 选中下面的方法，然后使用内联聊天请求重构
+    addUser(name, email) {
+        this.users.push({name, email});
+    }
+}
+
+// 示例使用场景：
+// 1. 在空行位置按 Ctrl+K Ctrl+I，询问 "生成一个数据验证函数"
+// 2. 选中某段代码，按 Ctrl+K Ctrl+I，询问 "优化这段代码"
+// 3. 在注释行按 Ctrl+K Ctrl+I，询问 "解释这段代码的作用"
+
+console.log("内联聊天功能测试");
+
