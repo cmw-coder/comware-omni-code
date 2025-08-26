@@ -1,5 +1,7 @@
+import { injectable, inject } from 'inversify';
 import { IAIClient } from '../../core/interfaces/IAIClient';
 import { ILogger } from '../../core/interfaces/ILogger';
+import { TYPES } from '../../core/container/types';
 
 export interface IInlineChatService {
     processInlineChat(
@@ -13,10 +15,11 @@ export interface IInlineChatService {
     ): Promise<string | undefined>;
 }
 
+@injectable()
 export class InlineChatService implements IInlineChatService {
     constructor(
-        private aiClient: IAIClient,
-        private logger: ILogger
+        @inject(TYPES.AIClient) private aiClient: IAIClient,
+        @inject(TYPES.Logger) private logger: ILogger
     ) {}
 
     async processInlineChat(

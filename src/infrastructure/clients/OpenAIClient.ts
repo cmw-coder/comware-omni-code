@@ -1,12 +1,15 @@
+import { injectable, inject } from 'inversify';
 import { IAIClient } from '../../core/interfaces/IAIClient';
 import { IConfigurationService } from '../../core/interfaces/IConfigurationService';
 import { ILogger } from '../../core/interfaces/ILogger';
 import { ChatMessage, CompletionRequest, CompletionResponse } from '../../types';
+import { TYPES } from '../../core/container/types';
 
+@injectable()
 export class OpenAIClient implements IAIClient {
     constructor(
-        private configService: IConfigurationService,
-        private logger: ILogger
+        @inject(TYPES.ConfigurationService) private configService: IConfigurationService,
+        @inject(TYPES.Logger) private logger: ILogger
     ) {}
 
     async getCompletion(prompt: string): Promise<string | undefined> {

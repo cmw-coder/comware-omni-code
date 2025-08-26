@@ -1,6 +1,8 @@
+import { injectable, inject } from 'inversify';
 import { IChatService } from '../../domain/services/ChatService';
 import { ILogger } from '../../core/interfaces/ILogger';
 import { ChatMessage } from '../../domain/entities/ChatMessage';
+import { TYPES } from '../../core/container/types';
 
 export interface IChatUseCase {
     sendMessage(content: string, sessionId?: string): Promise<ChatMessage>;
@@ -9,10 +11,11 @@ export interface IChatUseCase {
     createNewSession(): Promise<string>;
 }
 
+@injectable()
 export class ChatUseCase implements IChatUseCase {
     constructor(
-        private chatService: IChatService,
-        private logger: ILogger
+        @inject(TYPES.ChatService) private chatService: IChatService,
+        @inject(TYPES.Logger) private logger: ILogger
     ) {}
 
     async sendMessage(content: string, sessionId?: string): Promise<ChatMessage> {

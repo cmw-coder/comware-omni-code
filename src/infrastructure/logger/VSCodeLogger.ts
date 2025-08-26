@@ -1,5 +1,7 @@
+import { injectable } from 'inversify';
 import { ILogger } from '../../core/interfaces/ILogger';
 
+@injectable()
 export class VSCodeLogger implements ILogger {
     private outputChannel = require('vscode').window.createOutputChannel('Comware Omni Code');
 

@@ -1,6 +1,8 @@
+import { injectable } from 'inversify';
 import { IChatRepository } from '../../core/interfaces/IChatRepository';
 import { ChatMessage } from '../../domain/entities/ChatMessage';
 
+@injectable()
 export class InMemoryChatRepository implements IChatRepository {
     private messages: Map<string, ChatMessage[]> = new Map();
     private defaultSessionId = 'default';

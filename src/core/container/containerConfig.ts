@@ -18,50 +18,38 @@ import { ChatUseCase } from '../../application/usecases/ChatUseCase';
 import { CodeCompletionUseCase } from '../../application/usecases/CodeCompletionUseCase';
 import { InlineChatUseCase } from '../../application/usecases/InlineChatUseCase';
 
+// Interfaces
+import { IConfigurationService } from '../interfaces/IConfigurationService';
+import { IAIClient } from '../interfaces/IAIClient';
+import { ILogger } from '../interfaces/ILogger';
+import { IChatRepository } from '../interfaces/IChatRepository';
+import { ICodeCompletionRepository } from '../interfaces/ICodeCompletionRepository';
+import { IChatService } from '../../domain/services/ChatService';
+import { ICodeCompletionService } from '../../domain/services/CodeCompletionService';
+import { IInlineChatService } from '../../domain/services/InlineChatService';
+import { IChatUseCase } from '../../application/usecases/ChatUseCase';
+import { ICodeCompletionUseCase } from '../../application/usecases/CodeCompletionUseCase';
+import { IInlineChatUseCase } from '../../application/usecases/InlineChatUseCase';
+
 export function configureDependencies(): void {
-    // Infrastructure layer
-    container.bind(TYPES.ConfigurationService, () => ConfigurationService.getInstance());
-    container.bind(TYPES.Logger, VSCodeLogger);
-    container.bind(TYPES.ChatRepository, InMemoryChatRepository);
-    container.bind(TYPES.CodeCompletionRepository, InMemoryCodeCompletionRepository);
+    // Infrastructure layer - 绑定接口到具体实现
+    // ConfigurationService使用单例模式，需要特殊绑定
+    container.bind<IConfigurationService>(TYPES.ConfigurationService).toDynamicValue(() => 
+        ConfigurationService.getInstance()
+    ).inSingletonScope();
     
-    // AI Client with dependencies
-    container.bind(TYPES.AIClient, () => new OpenAIClient(
-        container.get(TYPES.ConfigurationService),
-        container.get(TYPES.Logger)
-    ));
+    container.bind<ILogger>(TYPES.Logger).to(VSCodeLogger).inSingletonScope();
+    container.bind<IChatRepository>(TYPES.ChatRepository).to(InMemoryChatRepository).inSingletonScope();
+    container.bind<ICodeCompletionRepository>(TYPES.CodeCompletionRepository).to(InMemoryCodeCompletionRepository).inSingletonScope();
+    container.bind<IAIClient>(TYPES.AIClient).to(OpenAIClient).inSingletonScope();
 
-    // Domain services with dependencies
-    container.bind(TYPES.ChatService, () => new ChatService(
-        container.get(TYPES.ChatRepository),
-        container.get(TYPES.AIClient),
-        container.get(TYPES.Logger)
-    ));
+    // Domain services
+    container.bind<IChatService>(TYPES.ChatService).to(ChatService).inSingletonScope();
+    container.bind<ICodeCompletionService>(TYPES.CodeCompletionService).to(CodeCompletionService).inSingletonScope();
+    container.bind<IInlineChatService>(TYPES.InlineChatService).to(InlineChatService).inSingletonScope();
 
-    container.bind(TYPES.CodeCompletionService, () => new CodeCompletionService(
-        container.get(TYPES.CodeCompletionRepository),
-        container.get(TYPES.AIClient),
-        container.get(TYPES.Logger)
-    ));
-
-    container.bind(TYPES.InlineChatService, () => new InlineChatService(
-        container.get(TYPES.AIClient),
-        container.get(TYPES.Logger)
-    ));
-
-    // Application use cases with dependencies
-    container.bind(TYPES.ChatUseCase, () => new ChatUseCase(
-        container.get(TYPES.ChatService),
-        container.get(TYPES.Logger)
-    ));
-
-    container.bind(TYPES.CodeCompletionUseCase, () => new CodeCompletionUseCase(
-        container.get(TYPES.CodeCompletionService),
-        container.get(TYPES.Logger)
-    ));
-
-    container.bind(TYPES.InlineChatUseCase, () => new InlineChatUseCase(
-        container.get(TYPES.InlineChatService),
-        container.get(TYPES.Logger)
-    ));
+    // Application use cases
+    container.bind<IChatUseCase>(TYPES.ChatUseCase).to(ChatUseCase).inSingletonScope();
+    container.bind<ICodeCompletionUseCase>(TYPES.CodeCompletionUseCase).to(CodeCompletionUseCase).inSingletonScope();
+    container.bind<IInlineChatUseCase>(TYPES.InlineChatUseCase).to(InlineChatUseCase).inSingletonScope();
 }

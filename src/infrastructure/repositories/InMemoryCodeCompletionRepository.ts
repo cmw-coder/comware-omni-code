@@ -1,6 +1,8 @@
+import { injectable } from 'inversify';
 import { ICodeCompletionRepository } from '../../core/interfaces/ICodeCompletionRepository';
 import { CodeCompletion } from '../../domain/entities/CodeCompletion';
 
+@injectable()
 export class InMemoryCodeCompletionRepository implements ICodeCompletionRepository {
     private completions: CodeCompletion[] = [];
 

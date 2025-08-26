@@ -179,9 +179,12 @@ function registerChatPanel(context: vscode.ExtensionContext): void {
 }
 
 export function deactivate() {
-    const logger = container.get<ILogger>(TYPES.Logger);
-    logger.info('Comware Omni Code extension deactivated');
+    try {
+        const logger = container.get<ILogger>(TYPES.Logger);
+        logger.info('Comware Omni Code extension deactivated');
+    } catch (error) {
+        console.log('Extension deactivated');
+    }
     
-    // Clean up container
-    container.clear();
+    // Inversify container会自动管理清理，不需要手动clear
 }

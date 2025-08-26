@@ -1,7 +1,9 @@
+import { injectable, inject } from 'inversify';
 import { ICodeCompletionRepository } from '../../core/interfaces/ICodeCompletionRepository';
 import { IAIClient } from '../../core/interfaces/IAIClient';
 import { ILogger } from '../../core/interfaces/ILogger';
 import { CodeCompletion, CodeCompletionEntity } from '../entities/CodeCompletion';
+import { TYPES } from '../../core/container/types';
 
 export interface ICodeCompletionService {
     getCompletion(
@@ -18,11 +20,12 @@ export interface ICodeCompletionService {
     clearCompletionHistory(): Promise<void>;
 }
 
+@injectable()
 export class CodeCompletionService implements ICodeCompletionService {
     constructor(
-        private codeCompletionRepository: ICodeCompletionRepository,
-        private aiClient: IAIClient,
-        private logger: ILogger
+        @inject(TYPES.CodeCompletionRepository) private codeCompletionRepository: ICodeCompletionRepository,
+        @inject(TYPES.AIClient) private aiClient: IAIClient,
+        @inject(TYPES.Logger) private logger: ILogger
     ) {}
 
     async getCompletion(

@@ -1,3 +1,4 @@
+// Inversify types for dependency injection
 export const TYPES = {
     // Core services
     AIClient: Symbol.for('AIClient'),

@@ -1,6 +1,8 @@
+import { injectable } from 'inversify';
 import { IConfigurationService } from '../../core/interfaces/IConfigurationService';
 import * as vscode from 'vscode';
 
+@injectable()
 export class ConfigurationService implements IConfigurationService {
     private static instance: ConfigurationService;
 
