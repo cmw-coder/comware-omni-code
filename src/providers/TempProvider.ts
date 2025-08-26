@@ -179,41 +179,7 @@ export class TempProvider implements vscode.Disposable {
             session.editor.setDecorations(session.inputBoxDecoration, []);
         }
 
-        // const isCodeResponse = this._isCodeResponse(originalInput, response, session.originalText);
-
-        // if (isCodeResponse) {
-        //     await this._showCodeSuggestion(sessionId, session, response);
-        // } else {
-        //     await this._showTextResponse(sessionId, session, response);
-        // }
         await this._showCodeSuggestion(sessionId, session, response);
-    }
-
-    private _isCodeResponse(input: string, response: string, originalText: string): boolean {
-        // Check if input suggests code modification
-        const codeKeywords = ['edit', 'change', 'modify', 'refactor', 'fix', 'improve', 'optimize', 'rewrite', 'generate', 'create', 'add', 'update', 'implement'];
-        const hasCodeKeyword = codeKeywords.some(keyword => input.toLowerCase().includes(keyword));
-
-        // Check if response looks like code
-        const codeIndicators = [
-            /function\s+\w+/,
-            /class\s+\w+/,
-            /const\s+\w+\s*=/,
-            /let\s+\w+\s*=/,
-            /var\s+\w+\s*=/,
-            /import\s+.*from/,
-            /export\s+(default\s+)?/,
-            /=>\s*{/,
-            /{\s*$/m,
-            /;\s*$/m,
-            /if\s*\(/,
-            /for\s*\(/,
-            /while\s*\(/
-        ];
-
-        const looksLikeCode = codeIndicators.some(pattern => pattern.test(response));
-
-        return (hasCodeKeyword && looksLikeCode) || (originalText.length > 0 && looksLikeCode);
     }
 
     private async _showCodeSuggestion(sessionId: string, session: TempSession, suggestedCode: string): Promise<void> {
