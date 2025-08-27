@@ -287,6 +287,38 @@ body {
     font-size: inherit;
 }
 
+/* 语法高亮样式 */
+.code-content .keyword {
+    color: var(--vscode-symbolIcon-keywordForeground, #569cd6);
+    font-weight: 500;
+}
+
+.code-content .string {
+    color: var(--vscode-symbolIcon-stringForeground, #ce9178);
+}
+
+.code-content .comment {
+    color: var(--vscode-symbolIcon-snippetForeground, #6a9955);
+    font-style: italic;
+}
+
+.code-content .number {
+    color: var(--vscode-symbolIcon-numberForeground, #b5cea8);
+}
+
+.code-content .function {
+    color: var(--vscode-symbolIcon-functionForeground, #dcdcaa);
+}
+
+.code-content .operator {
+    color: var(--vscode-symbolIcon-operatorForeground, #d4d4d4);
+}
+
+.code-content .decorator {
+    color: var(--vscode-symbolIcon-keywordForeground, #569cd6);
+    font-style: italic;
+}
+
 /* 行内代码样式 */
 .inline-code {
     background: var(--vscode-textCodeBlock-background);

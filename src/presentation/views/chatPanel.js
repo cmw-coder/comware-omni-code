@@ -1,6 +1,19 @@
 const vscode = acquireVsCodeApi();
 let currentMode = 'chat';
 
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    const header = document.querySelector('.header-buttons');
+    if (header) {
+        const testBtn = document.createElement('button');
+        testBtn.className = 'header-button';
+        testBtn.textContent = 'Test Code';
+        testBtn.onclick = addTestMessage;
+        testBtn.title = '添加测试代码消息（演示用）';
+        header.appendChild(testBtn);
+    }
+});
+
 function setMode(mode) {
     currentMode = mode;
     document.querySelectorAll('.mode-button').forEach(btn => {
@@ -70,10 +83,11 @@ document.getElementById('messageInput').addEventListener('keydown', function(e) 
 
 // Add test button for demonstration (remove in production)
 function addTestMessage() {
-    const testMessage = {
-        id: 'test-' + Date.now(),
-        role: 'assistant',
-        content: `这是一个包含代码块的测试消息：
+    const testMessages = [
+        {
+            id: 'test-markdown-' + Date.now(),
+            role: 'assistant',
+            content: `这是一个包含代码块的测试消息：
 
 \`\`\`javascript
 function calculateSum(a, b) {
@@ -102,24 +116,40 @@ def fibonacci(n):
 for i in range(10):
     print(f"fibonacci({i}) = {fibonacci(i)}")
 \`\`\``,
-        timestamp: new Date().toISOString()
-    };
+            timestamp: new Date().toISOString()
+        },
+        {
+            id: 'test-python-' + Date.now() + 1,
+            role: 'assistant',
+            content: `def test_login_success():
+    """测试成功登录"""
+    driver = webdriver.Chrome()
+    driver.get("https://example.com/login")
     
-    updateMessages([testMessage]);
+    # 输入用户名和密码
+    username_field = driver.find_element(By.ID, "username")
+    password_field = driver.find_element(By.ID, "password")
+    
+    username_field.send_keys("test_user")
+    password_field.send_keys("test_password")
+    
+    # 点击登录按钮
+    login_button = driver.find_element(By.ID, "login-button")
+    login_button.click()
+    
+    # 验证登录成功
+    assert "dashboard" in driver.current_url
+    welcome_text = driver.find_element(By.CLASS_NAME, "welcome-message")
+    assert "Welcome" in welcome_text.text
+    
+    driver.quit()`,
+            timestamp: new Date().toISOString(),
+            metadata: { mode: 'testScript' }
+        }
+    ];
+    
+    updateMessages(testMessages);
 }
-
-// Add test button to header (for demonstration)
-document.addEventListener('DOMContentLoaded', function() {
-    const header = document.querySelector('.header-buttons');
-    if (header) {
-        const testBtn = document.createElement('button');
-        testBtn.className = 'header-button';
-        testBtn.textContent = 'Test Code';
-        testBtn.onclick = addTestMessage;
-        testBtn.title = '添加测试代码消息（演示用）';
-        header.appendChild(testBtn);
-    }
-});
 
 // Handle messages from extension
 window.addEventListener('message', event => {
@@ -153,7 +183,7 @@ function updateMessages(messages) {
                 return createProgressMessage(msg.content, msg.metadata.status, msg.metadata.fileName);
             } else {
                 const processedContent = msg.role === 'assistant' ? 
-                    processMessageContent(msg.content) : 
+                    processAssistantMessage(msg.content, msg.metadata) : 
                     escapeHtml(msg.content);
                 
                 return `
@@ -210,9 +240,53 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-function processMessageContent(content) {
+function processAssistantMessage(content, metadata) {
+    // 检查是否是testScript模式的消息
+    if (metadata && metadata.mode === 'testScript') {
+        // testScript模式：整个内容都是Python代码
+        return createPythonCodeBlock(content);
+    } else {
+        // 其他模式：按Markdown处理，支持代码块
+        return processMarkdownContent(content);
+    }
+}
+
+function createPythonCodeBlock(code) {
+    const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
+    const trimmedCode = code.trim();
+    
+    // 存储原始代码
+    codeDataMap.set(codeId, trimmedCode);
+    
+    // 使用本地语法高亮
+    const highlightedCode = highlightCode(trimmedCode, 'python');
+    
+    return `
+        <div class="code-block">
+            <div class="code-header">
+                <span class="code-language">python</span>
+                <div class="code-actions">
+                    <button class="code-action-btn" onclick="copyCode('${codeId}')" title="复制代码">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 0 1 0 1.5h-1.5a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-1.5a.75.75 0 0 1 1.5 0v1.5A1.75 1.75 0 0 1 9.25 16h-7.5A1.75 1.75 0 0 1 0 14.25Z"/>
+                            <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0 1 14.25 11h-7.5A1.75 1.75 0 0 1 5 9.25Zm1.75-.25a.25.25 0 0 0-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25v-7.5a.25.25 0 0 0-.25-.25Z"/>
+                        </svg>
+                    </button>
+                    <button class="code-action-btn" onclick="insertCode('${codeId}')" title="插入到光标位置">
+                        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 2a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V3.56L5.03 5.78a.75.75 0 0 1-1.06-1.06l3.5-3.5A.75.75 0 0 1 8 2Zm-5.25 9a.75.75 0 0 1 .75-.75h8a.75.75 0 0 1 0 1.5h-8a.75.75 0 0 1-.75-.75Z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <pre class="code-content" id="${codeId}"><code class="language-python">${highlightedCode}</code></pre>
+        </div>
+    `;
+}
+
+function processMarkdownContent(content) {
     // 处理代码块 ```language ... ```
-    const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+    const codeBlockRegex = /```(\w+)?\n?(.*?)```/g;
     let processed = content;
     
     // 先处理代码块，避免HTML转义影响
@@ -222,7 +296,13 @@ function processMessageContent(content) {
     processed = processed.replace(codeBlockRegex, (match, language, code) => {
         const lang = language || 'plaintext';
         const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-        const highlightedCode = highlightCode(code.trim(), lang);
+        const rawCode = code.trim();
+        
+        // 存储原始代码
+        codeDataMap.set(codeId, rawCode);
+        
+        // 使用本地语法高亮
+        const highlightedCode = highlightCode(rawCode, lang);
         
         const placeholder = `__CODE_BLOCK_${codeBlockIndex}__`;
         codeBlocks[codeBlockIndex] = `
@@ -250,14 +330,25 @@ function processMessageContent(content) {
         return placeholder;
     });
     
-    // 处理行内代码 `code`
+    // 处理行内代码 `code` (在HTML转义之前)
     const inlineCodeRegex = /`([^`]+)`/g;
+    const inlineCodes = [];
+    let inlineCodeIndex = 0;
+    
     processed = processed.replace(inlineCodeRegex, (match, code) => {
-        return `<code class="inline-code">${escapeHtml(code)}</code>`;
+        const placeholder = `__INLINE_CODE_${inlineCodeIndex}__`;
+        inlineCodes[inlineCodeIndex] = `<code class="inline-code">${escapeHtml(code)}</code>`;
+        inlineCodeIndex++;
+        return placeholder;
     });
     
     // HTML转义其余内容
     processed = escapeHtml(processed);
+    
+    // 恢复行内代码
+    inlineCodes.forEach((code, index) => {
+        processed = processed.replace(`__INLINE_CODE_${index}__`, code);
+    });
     
     // 恢复代码块
     codeBlocks.forEach((block, index) => {
@@ -270,68 +361,124 @@ function processMessageContent(content) {
     return processed;
 }
 
+// 存储原始代码的全局映射
+const codeDataMap = new Map();
+
+// 改进的本地语法高亮函数
 function highlightCode(code, language) {
-    // 简单的语法高亮实现
-    const keywords = {
-        javascript: ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'class', 'extends', 'import', 'export', 'default', 'async', 'await'],
-        typescript: ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'class', 'extends', 'import', 'export', 'default', 'async', 'await', 'interface', 'type', 'public', 'private', 'protected'],
-        python: ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'return', 'import', 'from', 'as', 'try', 'except', 'finally', 'with', 'lambda', 'and', 'or', 'not', 'in', 'is'],
-        java: ['public', 'private', 'protected', 'class', 'interface', 'extends', 'implements', 'static', 'final', 'void', 'int', 'String', 'boolean', 'if', 'else', 'for', 'while', 'return', 'try', 'catch', 'finally'],
-        csharp: ['public', 'private', 'protected', 'class', 'interface', 'namespace', 'using', 'static', 'void', 'int', 'string', 'bool', 'if', 'else', 'for', 'while', 'return', 'try', 'catch', 'finally'],
-        go: ['func', 'var', 'const', 'type', 'struct', 'interface', 'package', 'import', 'if', 'else', 'for', 'switch', 'case', 'default', 'return', 'go', 'defer', 'select'],
-        rust: ['fn', 'let', 'mut', 'const', 'struct', 'enum', 'impl', 'trait', 'mod', 'use', 'if', 'else', 'for', 'while', 'loop', 'match', 'return', 'pub'],
-        cpp: ['int', 'char', 'float', 'double', 'void', 'bool', 'class', 'struct', 'public', 'private', 'protected', 'if', 'else', 'for', 'while', 'return', 'include', 'using', 'namespace'],
-        c: ['int', 'char', 'float', 'double', 'void', 'struct', 'if', 'else', 'for', 'while', 'return', 'include', 'define', 'typedef'],
-        html: ['div', 'span', 'p', 'a', 'img', 'ul', 'ol', 'li', 'table', 'tr', 'td', 'th', 'head', 'body', 'html', 'title', 'meta', 'link', 'script', 'style'],
-        css: ['color', 'background', 'margin', 'padding', 'border', 'width', 'height', 'display', 'position', 'top', 'left', 'right', 'bottom', 'flex', 'grid']
-    };
-    
+    // 先转义HTML
     let highlighted = escapeHtml(code);
     
-    const langKeywords = keywords[language.toLowerCase()] || [];
+    // 定义各种语言的语法规则
+    const syntaxRules = {
+        python: {
+            keywords: ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'return', 'import', 'from', 'as', 'try', 'except', 'finally', 'with', 'lambda', 'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None', 'pass', 'break', 'continue', 'global', 'nonlocal', 'yield', 'async', 'await'],
+            stringQuotes: ['"', "'"],
+            comments: ['#'],
+            decorators: /@\w+/g,
+            functions: /\b(\w+)(?=\s*\()/g
+        },
+        javascript: {
+            keywords: ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'class', 'extends', 'import', 'export', 'default', 'async', 'await', 'try', 'catch', 'finally', 'throw', 'new', 'this', 'super', 'static', 'true', 'false', 'null', 'undefined'],
+            stringQuotes: ['"', "'", '`'],
+            comments: ['//', '/*'],
+            functions: /\b(\w+)(?=\s*\()/g
+        },
+        typescript: {
+            keywords: ['function', 'const', 'let', 'var', 'if', 'else', 'for', 'while', 'return', 'class', 'extends', 'import', 'export', 'default', 'async', 'await', 'interface', 'type', 'public', 'private', 'protected', 'readonly', 'static', 'abstract', 'enum', 'namespace', 'module', 'declare'],
+            stringQuotes: ['"', "'", '`'],
+            comments: ['//', '/*'],
+            functions: /\b(\w+)(?=\s*\()/g
+        },
+        java: {
+            keywords: ['public', 'private', 'protected', 'class', 'interface', 'extends', 'implements', 'static', 'final', 'void', 'int', 'String', 'boolean', 'if', 'else', 'for', 'while', 'return', 'try', 'catch', 'finally', 'throw', 'throws', 'new', 'this', 'super', 'true', 'false', 'null'],
+            stringQuotes: ['"'],
+            comments: ['//', '/*'],
+            functions: /\b(\w+)(?=\s*\()/g
+        }
+    };
+    
+    const rules = syntaxRules[language.toLowerCase()] || syntaxRules.javascript;
+    
+    // 高亮装饰器 (Python)
+    if (rules.decorators) {
+        highlighted = highlighted.replace(rules.decorators, '<span class="decorator">$&</span>');
+    }
     
     // 高亮关键字
-    langKeywords.forEach(keyword => {
-        const regex = new RegExp(`\\b${keyword}\\b`, 'g');
+    rules.keywords.forEach(keyword => {
+        const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g');
         highlighted = highlighted.replace(regex, `<span class="keyword">${keyword}</span>`);
     });
     
-    // 高亮字符串
-    highlighted = highlighted.replace(/(["'])((?:\\.|(?!\1)[^\\])*?)\1/g, '<span class="string">$1$2$1</span>');
+    // 高亮字符串 - 更精确的处理
+    if (rules.stringQuotes.includes('"')) {
+        highlighted = highlighted.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="string">$1</span>');
+    }
+    if (rules.stringQuotes.includes("'")) {
+        highlighted = highlighted.replace(/('(?:[^'\\]|\\.)*')/g, '<span class="string">$1</span>');
+    }
+    if (rules.stringQuotes.includes('`')) {
+        highlighted = highlighted.replace(/(`(?:[^`\\]|\\.)*`)/g, '<span class="string">$1</span>');
+    }
+    
+    // 高亮三引号字符串 (Python)
+    if (language.toLowerCase() === 'python') {
+        highlighted = highlighted.replace(/("""[\s\S]*?""")/g, '<span class="string">$1</span>');
+        highlighted = highlighted.replace(/('''[\s\S]*?''')/g, '<span class="string">$1</span>');
+    }
     
     // 高亮注释
-    highlighted = highlighted.replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>');
-    highlighted = highlighted.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="comment">$1</span>');
-    highlighted = highlighted.replace(/(#.*$)/gm, '<span class="comment">$1</span>');
+    if (rules.comments.includes('//')) {
+        highlighted = highlighted.replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>');
+    }
+    if (rules.comments.includes('/*')) {
+        highlighted = highlighted.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="comment">$1</span>');
+    }
+    if (rules.comments.includes('#')) {
+        highlighted = highlighted.replace(/(#.*$)/gm, '<span class="comment">$1</span>');
+    }
+    
+    // 高亮函数调用
+    if (rules.functions) {
+        highlighted = highlighted.replace(rules.functions, '<span class="function">$1</span>');
+    }
     
     // 高亮数字
-    highlighted = highlighted.replace(/\b\d+\.?\d*\b/g, '<span class="number">$&</span>');
+    highlighted = highlighted.replace(/\b(\d+\.?\d*)\b/g, '<span class="number">$1</span>');
+    
+    // 高亮操作符
+    highlighted = highlighted.replace(/([+\-*/%=<>!&|^~])/g, '<span class="operator">$1</span>');
     
     return highlighted;
 }
 
 function copyCode(codeId) {
-    const codeElement = document.getElementById(codeId);
-    if (codeElement) {
-        const code = codeElement.textContent;
+    // 从映射中获取原始代码
+    const code = codeDataMap.get(codeId);
+    if (code) {
         navigator.clipboard.writeText(code).then(() => {
             showToast('代码已复制到剪贴板');
         }).catch(err => {
             console.error('复制失败:', err);
             showToast('复制失败');
         });
+    } else {
+        showToast('复制失败：未找到代码内容');
     }
 }
 
 function insertCode(codeId) {
-    const codeElement = document.getElementById(codeId);
-    if (codeElement) {
-        const code = codeElement.textContent;
+    // 从映射中获取原始代码
+    const code = codeDataMap.get(codeId);
+    if (code) {
         vscode.postMessage({
             type: 'insertCode',
             code: code
         });
         showToast('代码已插入到光标位置');
+    } else {
+        showToast('插入失败：未找到代码内容');
     }
 }
 
