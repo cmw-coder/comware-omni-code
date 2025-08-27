@@ -167,3 +167,56 @@ body {
     border-radius: 3px;
     margin: 8px 0;
 }
+
+/* 进度消息样式 */
+.progress-message {
+    padding: 6px 12px;
+    border-radius: 3px;
+    margin: 4px 0;
+    font-size: 12px;
+    color: var(--vscode-descriptionForeground);
+    background: var(--vscode-editor-background);
+    border-left: 3px solid;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.9;
+}
+
+.progress-message.progress-info {
+    border-left-color: var(--vscode-charts-blue);
+}
+
+.progress-message.progress-success {
+    border-left-color: var(--vscode-charts-green);
+}
+
+.progress-message.progress-warning {
+    border-left-color: var(--vscode-charts-orange);
+}
+
+.progress-message.progress-error {
+    border-left-color: var(--vscode-charts-red);
+}
+
+.progress-text {
+    flex: 1;
+}
+
+.file-badge {
+    background: var(--vscode-badge-background);
+    color: var(--vscode-badge-foreground);
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    cursor: pointer;
+    border: 1px solid var(--vscode-contrastBorder);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.file-badge:hover {
+    background: var(--vscode-button-hoverBackground);
+    color: var(--vscode-button-foreground);
+    transform: scale(1.05);
+}

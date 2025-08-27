@@ -60,6 +60,9 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
                 case 'newSession':
                     await this.handleNewSession();
                     break;
+                case 'openFile':
+                    await this.handleOpenFile(data.fileName);
+                    break;
             }
         } catch (error) {
             this.logger.error('Error handling webview message', error as Error, data);
@@ -101,35 +104,49 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
 
     private async prepareTestScriptRequest(query: string): Promise<TestScriptRequest> {
         try {
+            // 发送开始准备的状态消息
+            this.sendProgressMessage('正在准备测试脚本生成请求...', 'info');
+
             // 获取当前活动编辑器
             const activeEditor = vscode.window.activeTextEditor;
             if (!activeEditor) {
+                this.sendProgressMessage('❌ 未找到活动编辑器', 'error');
                 throw new Error('No active editor found');
             }
 
             const currentDocument = activeEditor.document;
             const currentFilePath = currentDocument.fileName;
+            const currentFileName = path.basename(currentFilePath);
             const currentFileDir = path.dirname(currentFilePath);
 
             // 获取光标位置上文
+            this.sendProgressMessage('正在读取光标上文...', 'info');
             const cursorPosition = activeEditor.selection.active;
             const beforeScript = currentDocument.getText(new vscode.Range(new vscode.Position(0, 0), cursorPosition));
+            const lineCount = cursorPosition.line + 1;
+            this.sendProgressMessage(`✅ 已读取 ${currentFileName} 前 ${lineCount} 行代码`, 'success', currentFileName);
 
             // 读取conftest.py文件
+            this.sendProgressMessage('正在查找 conftest.py...', 'info');
             const conftestPath = path.join(currentFileDir, 'conftest.py');
             let conftestContent = '';
             try {
                 if (fs.existsSync(conftestPath)) {
                     conftestContent = fs.readFileSync(conftestPath, 'utf8');
+                    const lines = conftestContent.split('\n').length;
+                    this.sendProgressMessage(`✅ 已读取 conftest.py (${lines} 行)`, 'success', 'conftest.py');
                     this.logger.info('Found conftest.py file', { path: conftestPath });
                 } else {
+                    this.sendProgressMessage('⚠️ 未找到 conftest.py', 'warning');
                     this.logger.info('No conftest.py file found', { searchPath: conftestPath });
                 }
             } catch (error) {
+                this.sendProgressMessage('❌ 读取 conftest.py 失败', 'error');
                 this.logger.error('Error reading conftest.py', error as Error);
             }
 
             // 读取所有.topox文件
+            this.sendProgressMessage('正在查找 .topox 文件...', 'info');
             let topoxContent = '';
             try {
                 const files = fs.readdirSync(currentFileDir);
@@ -141,15 +158,21 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
                         const topoxPath = path.join(currentFileDir, topoxFile);
                         const content = fs.readFileSync(topoxPath, 'utf8');
                         topoxContents.push(`// File: ${topoxFile}\n${content}`);
+                        const lines = content.split('\n').length;
+                        this.sendProgressMessage(`✅ 已读取 ${topoxFile} (${lines} 行)`, 'success', topoxFile);
                     }
                     topoxContent = topoxContents.join('\n\n');
                     this.logger.info('Found .topox files', { count: topoxFiles.length, files: topoxFiles });
                 } else {
+                    this.sendProgressMessage('⚠️ 未找到 .topox 文件', 'warning');
                     this.logger.info('No .topox files found', { searchDir: currentFileDir });
                 }
             } catch (error) {
+                this.sendProgressMessage('❌ 读取 .topox 文件失败', 'error');
                 this.logger.error('Error reading .topox files', error as Error);
             }
+
+            this.sendProgressMessage('✅ 文件读取完成，正在生成测试脚本...', 'success');
 
             return {
                 query,
@@ -158,6 +181,7 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
                 beforeScript
             };
         } catch (error) {
+            this.sendProgressMessage('❌ 准备测试脚本请求失败', 'error');
             this.logger.error('Failed to prepare test script request', error as Error);
             throw new Error('Failed to prepare test script context. Please ensure you have an active editor.');
         }
@@ -184,6 +208,33 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
         } catch (error) {
             this.logger.error('Failed to create new session', error as Error);
             this.showError('Failed to create new session');
+        }
+    }
+
+    private async handleOpenFile(fileName: string): Promise<void> {
+        try {
+            // 获取当前活动编辑器所在的目录
+            const activeEditor = vscode.window.activeTextEditor;
+            if (!activeEditor) {
+                this.showError('No active editor found');
+                return;
+            }
+
+            const currentFileDir = path.dirname(activeEditor.document.fileName);
+            const filePath = path.join(currentFileDir, fileName);
+
+            // 检查文件是否存在
+            if (fs.existsSync(filePath)) {
+                const uri = vscode.Uri.file(filePath);
+                await vscode.window.showTextDocument(uri);
+                this.logger.info('Opened file from progress badge', { fileName, filePath });
+            } else {
+                this.showError(`File not found: ${fileName}`);
+                this.logger.warn('File not found when opening from badge', { fileName, filePath });
+            }
+        } catch (error) {
+            this.logger.error('Failed to open file', error as Error, { fileName });
+            this.showError(`Failed to open file: ${fileName}`);
         }
     }
 
@@ -215,6 +266,18 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
             this._view.webview.postMessage({
                 type: 'showError',
                 message
+            });
+        }
+    }
+
+    private sendProgressMessage(message: string, status: 'info' | 'success' | 'warning' | 'error', fileName?: string): void {
+        if (this._view) {
+            this._view.webview.postMessage({
+                type: 'showProgress',
+                message,
+                status,
+                fileName,
+                timestamp: Date.now()
             });
         }
     }

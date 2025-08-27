@@ -79,6 +79,9 @@ window.addEventListener('message', event => {
         case 'showError':
             showError(message.message);
             break;
+        case 'showProgress':
+            showProgress(message.message, message.status, message.fileName);
+            break;
     }
 });
 
@@ -119,6 +122,47 @@ function showError(message) {
     setTimeout(() => {
         errorDiv.remove();
     }, 5000);
+}
+
+function showProgress(message, status, fileName) {
+    const container = document.getElementById('chatContainer');
+    const progressDiv = document.createElement('div');
+    progressDiv.className = `progress-message progress-${status}`;
+    
+    // 创建进度消息内容
+    const messageSpan = document.createElement('span');
+    messageSpan.className = 'progress-text';
+    messageSpan.textContent = message;
+    
+    progressDiv.appendChild(messageSpan);
+    
+    // 如果有文件名，添加可点击的文件badge
+    if (fileName) {
+        const fileBadge = document.createElement('span');
+        fileBadge.className = 'file-badge';
+        fileBadge.textContent = fileName;
+        fileBadge.title = `点击打开 ${fileName}`;
+        fileBadge.onclick = () => {
+            // 发送消息给扩展来打开文件
+            vscode.postMessage({
+                type: 'openFile',
+                fileName: fileName
+            });
+        };
+        progressDiv.appendChild(fileBadge);
+    }
+    
+    container.appendChild(progressDiv);
+    container.scrollTop = container.scrollHeight;
+    
+    // 自动移除非错误的进度消息
+    if (status !== 'error') {
+        setTimeout(() => {
+            if (progressDiv.parentNode) {
+                progressDiv.remove();
+            }
+        }, 8000);
+    }
 }
 
 function escapeHtml(text) {
