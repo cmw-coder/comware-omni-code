@@ -82,11 +82,17 @@ window.addEventListener('message', event => {
         case 'showProgress':
             showProgress(message.message, message.status, message.fileName);
             break;
+        case 'clearProgress':
+            clearProgressMessages();
+            break;
     }
 });
 
 function updateMessages(messages) {
     const container = document.getElementById('chatContainer');
+    
+    // 保存现有的进度消息
+    const existingProgressMessages = Array.from(container.querySelectorAll('.progress-message'));
     
     if (messages.length === 0) {
         container.innerHTML = `
@@ -107,6 +113,11 @@ function updateMessages(messages) {
         </div>
         `).join('');
     }
+    
+    // 重新添加进度消息
+    existingProgressMessages.forEach(progressMsg => {
+        container.appendChild(progressMsg);
+    });
     
     container.scrollTop = container.scrollHeight;
 }
@@ -154,15 +165,12 @@ function showProgress(message, status, fileName) {
     
     container.appendChild(progressDiv);
     container.scrollTop = container.scrollHeight;
-    
-    // 自动移除非错误的进度消息
-    // if (status !== 'error') {
-    //     setTimeout(() => {
-    //         if (progressDiv.parentNode) {
-    //             progressDiv.remove();
-    //         }
-    //     }, 8000);
-    // }
+}
+
+function clearProgressMessages() {
+    const container = document.getElementById('chatContainer');
+    const progressMessages = container.querySelectorAll('.progress-message');
+    progressMessages.forEach(msg => msg.remove());
 }
 
 function escapeHtml(text) {

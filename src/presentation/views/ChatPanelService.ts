@@ -104,6 +104,9 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
 
     private async prepareTestScriptRequest(query: string): Promise<TestScriptRequest> {
         try {
+            // 清理之前的进度消息
+            this.clearProgressMessages();
+            
             // 发送开始准备的状态消息
             this.sendProgressMessage('正在准备测试脚本生成请求...', 'info');
 
@@ -150,7 +153,7 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
             let topoxContent = '';
             try {
                 const files = fs.readdirSync(currentFileDir);
-                const topoxFiles = files.filter(file => file.endsWith('.topox'));
+                const topoxFiles = files.filter((file: string) => file.endsWith('.topox'));
                 
                 if (topoxFiles.length > 0) {
                     const topoxContents: string[] = [];
@@ -278,6 +281,14 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
                 status,
                 fileName,
                 timestamp: Date.now()
+            });
+        }
+    }
+
+    private clearProgressMessages(): void {
+        if (this._view) {
+            this._view.webview.postMessage({
+                type: 'clearProgress'
             });
         }
     }
