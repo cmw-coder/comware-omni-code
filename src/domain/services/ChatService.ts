@@ -8,6 +8,7 @@ import { TYPES } from '../../core/container/types';
 export interface IChatService {
     sendMessage(content: string, sessionId?: string, mode?: string): Promise<ChatMessage>;
     sendTestScriptMessage(content: string, testScriptRequest: TestScriptRequest, sessionId?: string): Promise<ChatMessage>;
+    addSystemMessage(message: ChatMessage): Promise<void>;
     getChatHistory(sessionId?: string): Promise<ChatMessage[]>;
     clearChatHistory(sessionId?: string): Promise<void>;
     createChatSession(): Promise<string>;
@@ -85,6 +86,16 @@ export class ChatService implements IChatService {
             return await this.chatRepository.getChatHistory(sessionId);
         } catch (error) {
             this.logger.error('Failed to get chat history', error as Error, { sessionId });
+            throw error;
+        }
+    }
+
+    async addSystemMessage(message: ChatMessage): Promise<void> {
+        try {
+            await this.chatRepository.saveMessage(message);
+            this.logger.debug('System message added', { messageId: message.id, sessionId: message.sessionId });
+        } catch (error) {
+            this.logger.error('Failed to add system message', error as Error, { messageId: message.id });
             throw error;
         }
     }

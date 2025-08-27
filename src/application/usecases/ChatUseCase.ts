@@ -8,6 +8,7 @@ import { TYPES } from '../../core/container/types';
 export interface IChatUseCase {
     sendMessage(content: string, sessionId?: string, mode?: string): Promise<ChatMessage>;
     sendTestScriptMessage(content: string, testScriptRequest: TestScriptRequest, sessionId?: string): Promise<ChatMessage>;
+    addSystemMessage(message: ChatMessage): Promise<void>;
     getChatHistory(sessionId?: string): Promise<ChatMessage[]>;
     clearChatHistory(sessionId?: string): Promise<void>;
     createNewSession(): Promise<string>;
@@ -38,6 +39,11 @@ export class ChatUseCase implements IChatUseCase {
         }
 
         return await this.chatService.sendTestScriptMessage(content, testScriptRequest, sessionId);
+    }
+
+    async addSystemMessage(message: ChatMessage): Promise<void> {
+        this.logger.debug('Chat use case: adding system message', { messageId: message.id, sessionId: message.sessionId });
+        await this.chatService.addSystemMessage(message);
     }
 
     async getChatHistory(sessionId?: string): Promise<ChatMessage[]> {

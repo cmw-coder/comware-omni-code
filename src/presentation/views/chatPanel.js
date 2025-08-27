@@ -79,20 +79,11 @@ window.addEventListener('message', event => {
         case 'showError':
             showError(message.message);
             break;
-        case 'showProgress':
-            showProgress(message.message, message.status, message.fileName);
-            break;
-        case 'clearProgress':
-            clearProgressMessages();
-            break;
     }
 });
 
 function updateMessages(messages) {
     const container = document.getElementById('chatContainer');
-    
-    // 保存现有的进度消息
-    const existingProgressMessages = Array.from(container.querySelectorAll('.progress-message'));
     
     if (messages.length === 0) {
         container.innerHTML = `
@@ -103,23 +94,44 @@ function updateMessages(messages) {
             </div>
         `;
     } else {
-        container.innerHTML = messages.map(msg => `
-        <div class="message ${msg.role}">
-            <div class="message-header">
-                <strong>${msg.role === 'user' ? 'You' : 'AI'}</strong>
-                <span>${new Date(msg.timestamp).toLocaleTimeString()}</span>
-            </div>
-            <div class="message-content">${escapeHtml(msg.content)}</div>
-        </div>
-        `).join('');
+        container.innerHTML = messages.map(msg => {
+            // 检查是否是进度消息
+            if (msg.role === 'system' && msg.metadata && msg.metadata.type === 'progress') {
+                return createProgressMessage(msg.content, msg.metadata.status, msg.metadata.fileName);
+            } else {
+                return `
+                <div class="message ${msg.role}">
+                    <div class="message-header">
+                        <strong>${msg.role === 'user' ? 'You' : 'AI'}</strong>
+                        <span>${new Date(msg.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <div class="message-content">${escapeHtml(msg.content)}</div>
+                </div>
+                `;
+            }
+        }).join('');
     }
     
-    // 重新添加进度消息
-    existingProgressMessages.forEach(progressMsg => {
-        container.appendChild(progressMsg);
-    });
-    
     container.scrollTop = container.scrollHeight;
+}
+
+function createProgressMessage(message, status, fileName) {
+    let progressHtml = `<div class="progress-message progress-${status}">`;
+    progressHtml += `<span class="progress-text">${escapeHtml(message)}</span>`;
+    
+    if (fileName) {
+        progressHtml += `<span class="file-badge" title="点击打开 ${fileName}" onclick="openFile('${fileName}')">${fileName}</span>`;
+    }
+    
+    progressHtml += '</div>';
+    return progressHtml;
+}
+
+function openFile(fileName) {
+    vscode.postMessage({
+        type: 'openFile',
+        fileName: fileName
+    });
 }
 
 function showError(message) {
@@ -133,44 +145,6 @@ function showError(message) {
     setTimeout(() => {
         errorDiv.remove();
     }, 5000);
-}
-
-function showProgress(message, status, fileName) {
-    const container = document.getElementById('chatContainer');
-    const progressDiv = document.createElement('div');
-    progressDiv.className = `progress-message progress-${status}`;
-    
-    // 创建进度消息内容
-    const messageSpan = document.createElement('span');
-    messageSpan.className = 'progress-text';
-    messageSpan.textContent = message;
-    
-    progressDiv.appendChild(messageSpan);
-    
-    // 如果有文件名，添加可点击的文件badge
-    if (fileName) {
-        const fileBadge = document.createElement('span');
-        fileBadge.className = 'file-badge';
-        fileBadge.textContent = fileName;
-        fileBadge.title = `点击打开 ${fileName}`;
-        fileBadge.onclick = () => {
-            // 发送消息给扩展来打开文件
-            vscode.postMessage({
-                type: 'openFile',
-                fileName: fileName
-            });
-        };
-        progressDiv.appendChild(fileBadge);
-    }
-    
-    container.appendChild(progressDiv);
-    container.scrollTop = container.scrollHeight;
-}
-
-function clearProgressMessages() {
-    const container = document.getElementById('chatContainer');
-    const progressMessages = container.querySelectorAll('.progress-message');
-    progressMessages.forEach(msg => msg.remove());
 }
 
 function escapeHtml(text) {
