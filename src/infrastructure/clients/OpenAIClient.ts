@@ -102,7 +102,7 @@ export class OpenAIClient implements IAIClient {
                 throw new Error('Invalid response format from test script API');
             }
         } catch (error) {
-            this.logger.error('Failed to generate test script', error as Error, { request });
+            this.logger.raw(error);
             return undefined;
         }
     }
