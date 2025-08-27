@@ -1,5 +1,5 @@
 import { injectable, inject } from 'inversify';
-import { IAIClient } from '../../core/interfaces/IAIClient';
+import { IAIClient, TestScriptRequest } from '../../core/interfaces/IAIClient';
 import { IConfigurationService } from '../../core/interfaces/IConfigurationService';
 import { ILogger } from '../../core/interfaces/ILogger';
 import { ChatMessage, CompletionRequest, CompletionResponse } from '../../types';
@@ -60,6 +60,46 @@ export class OpenAIClient implements IAIClient {
             return response?.choices?.[0]?.message?.content?.trim();
         } catch (error) {
             this.logger.error('Failed to get code edit suggestion', error as Error, { instruction });
+            return undefined;
+        }
+    }
+
+    async generateTestScript(request: TestScriptRequest): Promise<string | undefined> {
+        try {
+            this.logger.info('Generating test script with external API', { 
+                query: request.query.substring(0, 50) + '...',
+                conftest: request.conftest.length > 0 ? 'provided' : 'empty',
+                topox: request.topox.length > 0 ? 'provided' : 'empty',
+                beforeScript: request.beforeScript.length > 0 ? 'provided' : 'empty'
+            });
+
+            const response = await fetch('http://10.114.138.73:9070/sendpy', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: request.query,
+                    conftest: request.conftest,
+                    topox: request.topox,
+                    beforeScript: request.beforeScript
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Test script API error! status: ${response.status}, message: ${errorText}`);
+            }
+
+            const result = await response.json() as { content?: string };
+            if (result && typeof result.content === 'string') {
+                this.logger.info('Test script generated successfully');
+                return result.content;
+            } else {
+                throw new Error('Invalid response format from test script API');
+            }
+        } catch (error) {
+            this.logger.error('Failed to generate test script', error as Error, { request });
             return undefined;
         }
     }

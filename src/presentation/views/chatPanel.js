@@ -15,9 +15,14 @@ function setMode(mode) {
         case 'edit':
             input.placeholder = 'Describe what you want to edit...';
             break;
-        case 'agent':
-            input.placeholder = 'Describe the task for the AI agent...';
+        // case 'agent':
+        //     input.placeholder = 'Describe the task for the AI agent...';
+        //     break;
+        case 'testScript':
+            input.placeholder = 'Describe the test script you want to create...';
             break;
+        default:
+            input.placeholder = 'Type your message...';
     }
 }
 

@@ -1,12 +1,13 @@
 import { injectable, inject } from 'inversify';
 import { IChatRepository } from '../../core/interfaces/IChatRepository';
-import { IAIClient } from '../../core/interfaces/IAIClient';
+import { IAIClient, TestScriptRequest } from '../../core/interfaces/IAIClient';
 import { ILogger } from '../../core/interfaces/ILogger';
 import { ChatMessage, ChatMessageEntity } from '../entities/ChatMessage';
 import { TYPES } from '../../core/container/types';
 
 export interface IChatService {
-    sendMessage(content: string, sessionId?: string): Promise<ChatMessage>;
+    sendMessage(content: string, sessionId?: string, mode?: string): Promise<ChatMessage>;
+    sendTestScriptMessage(content: string, testScriptRequest: TestScriptRequest, sessionId?: string): Promise<ChatMessage>;
     getChatHistory(sessionId?: string): Promise<ChatMessage[]>;
     clearChatHistory(sessionId?: string): Promise<void>;
     createChatSession(): Promise<string>;
@@ -20,9 +21,9 @@ export class ChatService implements IChatService {
         @inject(TYPES.Logger) private logger: ILogger
     ) {}
 
-    async sendMessage(content: string, sessionId?: string): Promise<ChatMessage> {
+    async sendMessage(content: string, sessionId?: string, mode?: string): Promise<ChatMessage> {
         try {
-            this.logger.info('Sending chat message', { content, sessionId });
+            this.logger.info('Sending chat message', { content, sessionId, mode });
 
             // 创建用户消息
             const userMessage = ChatMessageEntity.create('user', content, sessionId);
@@ -49,6 +50,32 @@ export class ChatService implements IChatService {
             return assistantMessage;
         } catch (error) {
             this.logger.error('Failed to send chat message', error as Error, { content, sessionId });
+            throw error;
+        }
+    }
+
+    async sendTestScriptMessage(content: string, testScriptRequest: TestScriptRequest, sessionId?: string): Promise<ChatMessage> {
+        try {
+            this.logger.info('Sending test script message', { content, sessionId });
+
+            // 创建用户消息
+            const userMessage = ChatMessageEntity.create('user', content, sessionId);
+            await this.chatRepository.saveMessage(userMessage);
+
+            // 调用测试脚本生成API
+            const aiResponse = await this.aiClient.generateTestScript(testScriptRequest);
+            if (!aiResponse) {
+                throw new Error('Failed to get test script response');
+            }
+
+            // 创建助手消息
+            const assistantMessage = ChatMessageEntity.create('assistant', aiResponse, sessionId);
+            await this.chatRepository.saveMessage(assistantMessage);
+
+            this.logger.info('Test script message processed successfully');
+            return assistantMessage;
+        } catch (error) {
+            this.logger.error('Failed to send test script message', error as Error, { content, sessionId });
             throw error;
         }
     }

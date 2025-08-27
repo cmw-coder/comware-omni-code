@@ -6,6 +6,7 @@ import { TYPES } from '../../core/container/types';
 import { IChatUseCase } from '../../application/usecases/ChatUseCase';
 import { ILogger } from '../../core/interfaces/ILogger';
 import { ChatMessage } from '../../domain/entities/ChatMessage';
+import { TestScriptRequest } from '../../core/interfaces/IAIClient';
 
 export class ChatPanelService implements vscode.WebviewViewProvider {
     public static readonly viewId = 'comwareOmniChat';
@@ -79,14 +80,86 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
                 this._currentSessionId = await this.chatUseCase.createNewSession();
             }
 
-            // Send message and get response
-            const responseMessage = await this.chatUseCase.sendMessage(message, this._currentSessionId);
+            let responseMessage: ChatMessage;
+
+            if (mode === 'testScript') {
+                // Handle testScript mode
+                const testScriptRequest = await this.prepareTestScriptRequest(message);
+                responseMessage = await this.chatUseCase.sendTestScriptMessage(message, testScriptRequest, this._currentSessionId);
+            } else {
+                // Handle regular chat mode
+                responseMessage = await this.chatUseCase.sendMessage(message, this._currentSessionId, mode);
+            }
             
             // Reload chat history
             await this.loadChatHistory();
         } catch (error) {
             this.logger.error('Failed to send message', error as Error);
             this.showError('Failed to send message. Please try again.');
+        }
+    }
+
+    private async prepareTestScriptRequest(query: string): Promise<TestScriptRequest> {
+        try {
+            // 获取当前活动编辑器
+            const activeEditor = vscode.window.activeTextEditor;
+            if (!activeEditor) {
+                throw new Error('No active editor found');
+            }
+
+            const currentDocument = activeEditor.document;
+            const currentFilePath = currentDocument.fileName;
+            const currentFileDir = path.dirname(currentFilePath);
+
+            // 获取光标位置上文
+            const cursorPosition = activeEditor.selection.active;
+            const beforeScript = currentDocument.getText(new vscode.Range(new vscode.Position(0, 0), cursorPosition));
+
+            // 读取conftest.py文件
+            const conftestPath = path.join(currentFileDir, 'conftest.py');
+            let conftestContent = '';
+            try {
+                if (fs.existsSync(conftestPath)) {
+                    conftestContent = fs.readFileSync(conftestPath, 'utf8');
+                    this.logger.info('Found conftest.py file', { path: conftestPath });
+                } else {
+                    this.logger.info('No conftest.py file found', { searchPath: conftestPath });
+                }
+            } catch (error) {
+                this.logger.error('Error reading conftest.py', error as Error);
+            }
+
+            // 读取所有.topox文件
+            let topoxContent = '';
+            try {
+                const files = fs.readdirSync(currentFileDir);
+                const topoxFiles = files.filter(file => file.endsWith('.topox'));
+                
+                if (topoxFiles.length > 0) {
+                    const topoxContents: string[] = [];
+                    for (const topoxFile of topoxFiles) {
+                        const topoxPath = path.join(currentFileDir, topoxFile);
+                        const content = fs.readFileSync(topoxPath, 'utf8');
+                        topoxContents.push(`// File: ${topoxFile}\n${content}`);
+                    }
+                    topoxContent = topoxContents.join('\n\n');
+                    this.logger.info('Found .topox files', { count: topoxFiles.length, files: topoxFiles });
+                } else {
+                    this.logger.info('No .topox files found', { searchDir: currentFileDir });
+                }
+            } catch (error) {
+                this.logger.error('Error reading .topox files', error as Error);
+            }
+
+            return {
+                query,
+                conftest: conftestContent,
+                topox: topoxContent,
+                beforeScript
+            };
+        } catch (error) {
+            this.logger.error('Failed to prepare test script request', error as Error);
+            throw new Error('Failed to prepare test script context. Please ensure you have an active editor.');
         }
     }
 
