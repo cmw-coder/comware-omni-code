@@ -58,8 +58,8 @@
         "icon": "$(comment-discussion)"
       },
       {
-        "command": "comware-omni-code.tempCommand",
-        "title": "Start Temporary Chat",
+        "command": "comware-omni-code.testScript",
+        "title": "Start Test Script Chat",
         "category": "Comware Omni"
       }
     ],
@@ -87,7 +87,7 @@
           "command": "comware-omni-code.inlineChat"
         },
         {
-          "command": "comware-omni-code.tempCommand"
+          "command": "comware-omni-code.testScript"
         }
       ],
       "editor/context": [
@@ -102,7 +102,7 @@
           "when": "editorTextFocus"
         },
         {
-          "command": "comware-omni-code.tempCommand",
+          "command": "comware-omni-code.testScript",
           "group": "comware-omni@3",
           "when": "editorTextFocus"
         }
@@ -116,7 +116,7 @@
         "when": "editorTextFocus"
       },
       {
-        "command": "comware-omni-code.tempCommand",
+        "command": "comware-omni-code.testScript",
         "key": "ctrl+alt+i",
         "mac": "cmd+alt+i",
         "when": "editorTextFocus"

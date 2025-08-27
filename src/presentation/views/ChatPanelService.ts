@@ -307,6 +307,14 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
         }
     }
 
+    public switchToTestScriptMode(): void {
+        if (this._view) {
+            this._view.webview.postMessage({
+                type: 'switchToTestScript'
+            });
+        }
+    }
+
     private async addProgressMessage(message: string, status: 'info' | 'success' | 'warning' | 'error', fileName?: string): Promise<void> {
         try {
             // 确保有session

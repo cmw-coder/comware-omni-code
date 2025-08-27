@@ -162,8 +162,22 @@ window.addEventListener('message', event => {
         case 'showError':
             showError(message.message);
             break;
+        case 'switchToTestScript':
+            switchToTestScriptMode();
+            break;
     }
 });
+
+function switchToTestScriptMode() {
+    // 切换到 testScript 模式
+    setMode('testScript');
+    
+    // 设置焦点到输入框
+    const input = document.getElementById('messageInput');
+    if (input) {
+        input.focus();
+    }
+}
 
 function updateMessages(messages) {
     const container = document.getElementById('chatContainer');

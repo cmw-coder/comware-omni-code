@@ -18,6 +18,9 @@ import { IInlineChatUseCase } from './application/usecases/InlineChatUseCase';
 // Core interfaces
 import { ILogger } from './core/interfaces/ILogger';
 
+// Global chat panel service instance
+let globalChatPanelService: ChatPanelService;
+
 export function activate(context: vscode.ExtensionContext) {
     try {
         // Configure dependency injection
@@ -48,7 +51,6 @@ export function activate(context: vscode.ExtensionContext) {
 
         logger.info('Extension activation completed successfully');
     } catch (error) {
-        console.error('Failed to activate extension:', error);
         vscode.window.showErrorMessage(`Failed to activate Comware Omni Code: ${(error as Error).message}`);
     }
 }
@@ -141,6 +143,24 @@ function registerCommands(context: vscode.ExtensionContext): void {
             }
         });
 
+        // Test script command
+        const testScriptCommand = vscode.commands.registerCommand('comware-omni-code.testScript', async () => {
+            try {
+                // 打开侧边栏
+                await vscode.commands.executeCommand('workbench.view.extension.comware-omni-sidebar');
+                
+                // 切换到 testScript 模式并设置焦点
+                if (globalChatPanelService) {
+                    globalChatPanelService.switchToTestScriptMode();
+                }
+                
+                logger.info('Test script mode activated');
+            } catch (error) {
+                logger.error('Failed to activate test script mode', error as Error);
+                vscode.window.showErrorMessage('Failed to activate test script mode');
+            }
+        });
+
         // Add all commands to subscriptions
         context.subscriptions.push(
             helloWorldCommand,
@@ -149,7 +169,8 @@ function registerCommands(context: vscode.ExtensionContext): void {
             startChatSessionCommand,
             editCodeCommand,
             runAgentCommand,
-            clearHistoryCommand
+            clearHistoryCommand,
+            testScriptCommand
         );
 
         logger.info('Commands registered successfully');
@@ -164,10 +185,10 @@ function registerChatPanel(context: vscode.ExtensionContext): void {
     
     try {
         // Create and register chat panel service
-        const chatPanelService = new ChatPanelService(context);
+        globalChatPanelService = new ChatPanelService(context);
         const chatPanelProvider = vscode.window.registerWebviewViewProvider(
             ChatPanelService.viewId, 
-            chatPanelService,
+            globalChatPanelService,
             { webviewOptions: { retainContextWhenHidden: true } }
         );
         context.subscriptions.push(chatPanelProvider);
@@ -184,7 +205,7 @@ export function deactivate() {
         const logger = container.get<ILogger>(TYPES.Logger);
         logger.info('Comware Omni Code extension deactivated');
     } catch (error) {
-        console.log('Extension deactivated');
+        // Extension deactivated
     }
     
     // Inversify container会自动管理清理，不需要手动clear
