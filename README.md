@@ -1,127 +1,128 @@
-# Comware Omni Code
+# Comware Omni Code - 优化架构版本
 
-A VS Code extension that provides AI-powered code completion, chat assistance, code editing, and agent capabilities similar to GitHub Copilot.
+## 🎯 架构优化概述
 
-## Features
+本项目经过架构重构，采用了基于**领域驱动设计(DDD)**和**清洁架构**的分层设计，实现了：
 
-### 🚀 Inline Chat (NEW!)
-- **GitHub Copilot风格的真正inline chat** - 输入框直接在代码行之间显示
-- Press `Ctrl+K Ctrl+I` 在光标位置启动inline输入框
-- 直接在编辑器中输入问题并按Enter提交
-- 代码建议和解释直接在编辑器中显示
-- Tab接受建议，Esc拒绝，完全无缝的体验
+- ✨ **清晰的分层结构** - 按职责分离代码
+- 🔄 **依赖注入** - 面向接口编程，提高可测试性
+- 📈 **高可扩展性** - 易于添加新功能和替换实现
+- 🛡️ **类型安全** - 完整的TypeScript类型支持
+- 🧪 **易于测试** - 良好的抽象便于单元测试
 
-### 🤖 Inline Code Completion
-- AI-powered code completions as you type
-- Context-aware suggestions
-- Supports multiple programming languages
+## 🏗️ 新架构结构
 
-### 💬 Chat Panel
-- Interactive chat interface with AI assistant
-- Ask questions about code, get explanations, and receive coding help
-- Persistent conversation history
-- Located in the sidebar with the robot icon
-
-### ✏️ Code Editing
-- Select code and use AI to edit it based on instructions
-- Right-click on selected code and choose "Edit Code with AI"
-- Or use the Edit mode in the chat panel
-
-### 🎯 AI Agent
-- Describe complex tasks and let the AI agent help you plan and execute them
-- Use the Agent mode in the chat panel
-- Get detailed plans and code suggestions for development tasks
-
-## Quick Start
-
-### 🔥 Try Inline Chat (Recommended)
-1. Open any code file
-2. Press `Ctrl+K Ctrl+I` (or `Cmd+K Ctrl+I` on Mac)
-3. See the input box appear directly between code lines: "💬 Ask AI: "
-4. Type your question: "Refactor this function" or "Add error handling"
-5. Press Enter and watch AI suggestions appear inline!
-
-### 📋 Other Ways to Get Started
-
-1. **Configure API Settings**: 
-   - Open VS Code Settings (Ctrl+,)
-   - Search for "Comware Omni"
-   - Set your OpenAI API URL and API Key
-   - Configure model settings (default: gpt-3.5-turbo)
-
-2. **Open the Chat Panel**:
-   - Click the robot icon in the Activity Bar (left sidebar)
-   - Or use Command Palette (Ctrl+Shift+P) → "Comware Omni: Open Chat Panel"
-
-3. **Use Different Modes**:
-   - **Inline Chat**: `Ctrl+K Ctrl+I` for instant AI assistance
-   - **Chat Panel**: Ask questions and get AI assistance
-   - **Edit**: Select code first, then describe how to modify it
-   - **Agent**: Describe complex tasks for AI planning and guidance
-
-## Commands
-
-### 🔥 Inline Chat Commands
-- `Comware Omni: Start Inline Chat` (`Ctrl+K Ctrl+I`) - GitHub Copilot-style inline chat
-
-### 💬 Panel & Editing Commands
-- `Comware Omni: Open Chat Panel` - Opens the chat interface
-- `Comware Omni: Start Chat Session` - Opens chat panel with welcome message
-- `Comware Omni: Edit Code with AI` - Edit selected code with AI assistance
-- `Comware Omni: Run AI Agent` - Start an agent task
-
-## Settings
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `comware-omni-code.apiUrl` | `https://api.openai.com/v1/chat/completions` | OpenAI API endpoint |
-| `comware-omni-code.apiKey` | `""` | Your OpenAI API key |
-| `comware-omni-code.model` | `gpt-3.5-turbo` | AI model to use |
-| `comware-omni-code.maxTokens` | `50` | Maximum tokens for completions |
-| `comware-omni-code.temperature` | `0.5` | Sampling temperature |
-
-## Usage Examples
-
-### Chat Mode
 ```
-User: How do I create a REST API in Express.js?
-AI: Here's how to create a basic REST API with Express.js...
+src/
+├── core/                    # 🧠 核心层 - 接口定义和依赖管理
+├── domain/                  # 💼 领域层 - 业务逻辑和实体
+├── infrastructure/          # 🔧 基础设施层 - 外部依赖实现
+├── application/            # 📋 应用层 - 用例编排
+├── presentation/           # 🖥️ 表示层 - VS Code UI交互
+└── types/                  # 📝 类型定义
 ```
 
-### Edit Mode
-1. Select some code in the editor
-2. Switch to Edit mode in the chat panel
-3. Type: "Add error handling to this function"
-4. The AI will modify your selected code
+## 🚀 快速开始
 
-### Agent Mode
-```
-User: Help me build a todo app with React and localStorage
-AI: I'll help you build a todo app. Here's a comprehensive plan:
-1. Set up the React component structure
-2. Create state management for todos
-3. Implement localStorage persistence
-...
+### 1. 安装依赖
+```bash
+npm install
 ```
 
-## Development
+### 2. 编译项目
+```bash
+npm run compile
+```
 
-To set up the development environment:
+### 3. 运行扩展
+- 按 `F5` 启动调试模式
+- 或者通过 VS Code 的"运行和调试"面板
 
-1. Clone the repository
-2. Run `pnpm install` to install dependencies
-3. Run `pnpm run compile` to build the extension
-4. Press F5 to launch a new VS Code window with the extension
+## 🎮 功能演示
 
-## Architecture
+### 代码补全
+1. 在支持的语言文件中输入代码
+2. 自动触发 AI 代码补全建议
+3. 支持的语言：TypeScript, JavaScript, Python, Java, C++, C, Go, Rust
 
-The extension consists of several key components:
+### 聊天面板
+1. 使用 `Ctrl+Shift+P` 打开命令面板
+2. 搜索 "Comware Omni: Open Chat Panel"
+3. 在侧边栏中与 AI 对话
 
-- **InlineCompletionProvider**: Handles inline code completions
-- **ChatPanelService**: Manages the webview chat interface
-- **OpenAIClient**: Handles API communication with OpenAI
-- **ConfigurationService**: Manages extension settings
+### 内联代码编辑
+1. 选择要编辑的代码
+2. 使用 `Ctrl+Shift+P` 打开命令面板
+3. 搜索 "Comware Omni: Edit Code with AI"
+4. 输入编辑指令
 
-## License
+## ⚙️ 配置
 
-[Add your license information here]
+在 VS Code 设置中配置以下选项：
+
+```json
+{
+  "comware-omni-code.apiUrl": "https://api.openai.com/v1/chat/completions",
+  "comware-omni-code.apiKey": "your-api-key",
+  "comware-omni-code.model": "gpt-3.5-turbo",
+  "comware-omni-code.maxTokens": 50,
+  "comware-omni-code.temperature": 0.5
+}
+```
+
+## 🧩 架构优势
+
+### 依赖注入
+```typescript
+// 容器自动管理依赖关系
+const chatUseCase = container.get<IChatUseCase>(TYPES.ChatUseCase);
+```
+
+### 接口抽象
+```typescript
+// 易于切换不同的AI提供者
+interface IAIClient {
+    getCompletion(prompt: string): Promise<string | undefined>;
+    getChatResponse(messages: ChatMessage[]): Promise<string | undefined>;
+}
+```
+
+### 分层隔离
+```typescript
+// 表示层 -> 应用层 -> 领域层 -> 基础设施层
+// 依赖方向清晰，高层不依赖低层具体实现
+```
+
+## 🔧 扩展开发
+
+### 添加新的AI提供者
+```typescript
+export class CustomAIClient implements IAIClient {
+    async getCompletion(prompt: string): Promise<string | undefined> {
+        // 实现自定义AI逻辑
+    }
+}
+
+// 在容器中注册
+container.bind(TYPES.AIClient, CustomAIClient);
+```
+
+### 添加新功能
+1. 在 `domain/services` 中添加业务逻辑
+2. 在 `application/usecases` 中添加用例
+3. 在 `presentation` 中添加UI交互
+4. 在容器中注册依赖关系
+
+## 📚 更多信息
+
+- 📖 [架构迁移指南](./ARCHITECTURE_MIGRATION.md) - 详细的迁移步骤和设计原理
+- 🔍 [代码演示](./src/demo-architecture.ts) - 架构功能演示脚本
+- 📝 [开发指南](./USAGE_EXAMPLES.md) - 原有的使用示例
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！新的架构使得代码更易于理解和扩展。
+
+## 📄 许可证
+
+[MIT License](./LICENSE)

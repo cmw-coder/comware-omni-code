@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comware Omni Chat</title>
+    <link rel="stylesheet" href="{{cssUri}}">
+</head>
+<body>
+    <div class="header">
+        <span>💬 Comware Omni Chat</span>
+        <div class="header-buttons">
+            <button class="header-button" onclick="clearChat()">Clear</button>
+            <button class="header-button" onclick="newSession()">New Session</button>
+        </div>
+    </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <div class="empty-state">
+            <div class="empty-state-icon">💬</div>
+            <p>Start a conversation with AI</p>
+            <p style="font-size: 12px;">Ask questions, get code help, or chat about anything!</p>
+        </div>
+    </div>
+    
+    <div class="input-container">
+        <div class="mode-selector">
+            <button class="mode-button active" data-mode="chat" onclick="setMode('chat')">Chat</button>
+            <button class="mode-button" data-mode="edit" onclick="setMode('edit')">Edit</button>
+            <button class="mode-button" data-mode="agent" onclick="setMode('agent')">Agent</button>
+        </div>
+        
+        <div class="input-row">
+            <textarea class="input-field" id="messageInput" placeholder="Type your message..." rows="1"></textarea>
+            <button class="send-button" id="sendButton" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script src="{{scriptUri}}"></script>
+</body>
+</html>

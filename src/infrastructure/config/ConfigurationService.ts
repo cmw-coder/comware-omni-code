@@ -1,9 +1,12 @@
+import { injectable } from 'inversify';
+import { IConfigurationService } from '../../core/interfaces/IConfigurationService';
 import * as vscode from 'vscode';
 
-export class ConfigurationService {
+@injectable()
+export class ConfigurationService implements IConfigurationService {
     private static instance: ConfigurationService;
 
-    private constructor() { }
+    private constructor() {}
 
     public static getInstance(): ConfigurationService {
         if (!ConfigurationService.instance) {
@@ -34,5 +37,18 @@ export class ConfigurationService {
 
     public getTemperature(): number {
         return this.getConfig().get<number>('temperature') || 0.5;
+    }
+
+    public async updateConfiguration(key: string, value: any): Promise<void> {
+        const config = this.getConfig();
+        await config.update(key, value, vscode.ConfigurationTarget.Workspace);
+    }
+
+    public validateConfiguration(): boolean {
+        const apiKey = this.getApiKey();
+        const apiUrl = this.getApiUrl();
+        const model = this.getModel();
+
+        return !!(apiKey && apiUrl && model);
     }
 }
