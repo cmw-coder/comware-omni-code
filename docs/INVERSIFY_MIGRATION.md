@@ -8,7 +8,7 @@
 
 ### 1. **依赖安装**
 ```bash
-pnpm add inversify reflect-metadata
+npm add inversify reflect-metadata
 ```
 
 ### 2. **TypeScript配置更新**

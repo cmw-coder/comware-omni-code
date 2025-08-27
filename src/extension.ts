@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import * as vscode from 'vscode';
 import { configureDependencies } from './core/container/containerConfig';
 import { container } from './core/container/Container';

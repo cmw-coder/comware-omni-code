@@ -21,7 +21,7 @@
 
 ### 环境要求
 - Node.js 16+ 
-- pnpm 包管理器
+- npm 包管理器
 - VS Code 1.100.0+
 
 ### 安装步骤
@@ -34,12 +34,12 @@ cd comware-omni-code
 
 2. **安装依赖**
 ```bash
-pnpm install
+npm install
 ```
 
 3. **编译项目**
 ```bash
-pnpm run compile
+npm run compile
 ```
 
 4. **启动调试**
@@ -191,7 +191,7 @@ testContainer.bind<ILogger>(TYPES.Logger).toConstantValue(mockLogger);
 运行架构演示：
 ```bash
 # 编译项目
-pnpm run compile
+npm run compile
 
 # 在VS Code中运行演示脚本
 # 打开 src/demo-inversify.ts 并执行

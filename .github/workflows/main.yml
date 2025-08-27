@@ -36,19 +36,15 @@ jobs:
       RELEASE_FOLDER: ./release
     steps:
       - uses: actions/checkout@v4
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'pnpm'
+          cache: 'npm'
       - name: Install Dependencies and Build
         run: |
-          pnpm i
-          pnpm run package
+          npm install
+          npm run package
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:

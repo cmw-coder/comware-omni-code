@@ -174,11 +174,11 @@
   },
   "scripts": {
     "watch": "tsc -watch -p ./",
-    "package": "pnpm vsce package --no-dependencies --out dist/ --baseContentUrl https://github.com/cmw-coder/comware-omni-code/blob/temp/",
-    "vscode:prepublish": "pnpm run compile && pnpm mkdir dist",
+    "package": "vsce package --out dist/ --baseContentUrl https://github.com/cmw-coder/comware-omni-code/blob/temp/",
+    "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "test": "vscode-test",
-    "pretest": "pnpm run compile && pnpm run lint",
+    "pretest": "npm run compile && npm run lint",
     "lint": "eslint src"
   },
   "dependencies": {

@@ -48,7 +48,7 @@ vsc-extension-quickstart.md
 ```json
 {
   "scripts": {
-    "package": "pnpm vsce package --no-dependencies --baseContentUrl https://github.com/cmw-coder/comware-omni-code/blob/temp/",
+    "package": "npm vsce package --no-dependencies --baseContentUrl https://github.com/cmw-coder/comware-omni-code/blob/temp/",
     "verify-package": "./scripts/verify-package.sh"
   }
 }
@@ -86,7 +86,7 @@ private _getHtmlForWebview(webview: vscode.Webview): string {
 ### 1. 使用验证脚本
 
 ```bash
-pnpm run verify-package
+npm run verify-package
 ```
 
 这个脚本会：
@@ -136,9 +136,9 @@ code --install-extension comware-omni-code-0.0.1.vsix
 ## 开发工作流
 
 1. **开发阶段**：编辑 HTML、CSS、JS 文件，享受 IDE 语法高亮
-2. **测试阶段**：运行 `pnpm run compile` 和 `F5` 调试
-3. **打包阶段**：运行 `pnpm run verify-package` 验证配置
-4. **发布阶段**：运行 `pnpm run package` 创建最终扩展包
+2. **测试阶段**：运行 `npm run compile` 和 `F5` 调试
+3. **打包阶段**：运行 `npm run verify-package` 验证配置
+4. **发布阶段**：运行 `npm run package` 创建最终扩展包
 
 ## 最佳实践
 
@@ -152,8 +152,8 @@ code --install-extension comware-omni-code-0.0.1.vsix
 确保安装了以下工具：
 - `@vscode/vsce` - VS Code 扩展打包工具
 - `typescript` - TypeScript 编译器
-- `pnpm` - 包管理器
+- `npm` - 包管理器
 
 ```bash
-pnpm add -D @vscode/vsce
+npm add -D @vscode/vsce
 ```
