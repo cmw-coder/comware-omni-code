@@ -366,13 +366,10 @@ const codeDataMap = new Map();
 
 // 改进的本地语法高亮函数
 function highlightCode(code, language) {
-    // 先转义HTML
-    let highlighted = escapeHtml(code);
-    
     // 定义各种语言的语法规则
     const syntaxRules = {
         python: {
-            keywords: ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'return', 'import', 'from', 'as', 'try', 'except', 'finally', 'with', 'lambda', 'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None', 'pass', 'break', 'continue', 'global', 'nonlocal', 'yield', 'async', 'await'],
+            keywords: ['def', 'class', 'if', 'else', 'elif', 'for', 'while', 'return', 'import', 'from', 'as', 'try', 'except', 'finally', 'with', 'lambda', 'and', 'or', 'not', 'in', 'is', 'True', 'False', 'None', 'pass', 'break', 'continue', 'global', 'nonlocal', 'yield', 'async', 'await', 'assert'],
             stringQuotes: ['"', "'"],
             comments: ['#'],
             decorators: /@\w+/g,
@@ -400,55 +397,239 @@ function highlightCode(code, language) {
     
     const rules = syntaxRules[language.toLowerCase()] || syntaxRules.javascript;
     
-    // 高亮装饰器 (Python)
-    if (rules.decorators) {
-        highlighted = highlighted.replace(rules.decorators, '<span class="decorator">$&</span>');
+    // 创建一个token数组来存储代码的各个部分
+    const tokens = [];
+    let currentIndex = 0;
+    
+    // 找到所有需要高亮的部分
+    const matches = [];
+    
+    // 1. 找到所有字符串
+    if (language.toLowerCase() === 'python') {
+        // Python三引号字符串
+        const tripleQuoteRegex = /("""[\s\S]*?"""|'''[\s\S]*?''')/g;
+        let match;
+        while ((match = tripleQuoteRegex.exec(code)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                type: 'string',
+                text: match[0]
+            });
+        }
     }
     
-    // 高亮关键字
+    // 普通字符串
+    if (rules.stringQuotes.includes('"')) {
+        const doubleQuoteRegex = /"(?:[^"\\]|\\.)*"/g;
+        let match;
+        while ((match = doubleQuoteRegex.exec(code)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                type: 'string',
+                text: match[0]
+            });
+        }
+    }
+    
+    if (rules.stringQuotes.includes("'")) {
+        const singleQuoteRegex = /'(?:[^'\\]|\\.)*'/g;
+        let match;
+        while ((match = singleQuoteRegex.exec(code)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                type: 'string',
+                text: match[0]
+            });
+        }
+    }
+    
+    if (rules.stringQuotes.includes('`')) {
+        const backtickRegex = /`(?:[^`\\]|\\.)*`/g;
+        let match;
+        while ((match = backtickRegex.exec(code)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                type: 'string',
+                text: match[0]
+            });
+        }
+    }
+    
+    // 2. 找到所有注释
+    if (rules.comments.includes('#')) {
+        const commentRegex = /#.*$/gm;
+        let match;
+        while ((match = commentRegex.exec(code)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                type: 'comment',
+                text: match[0]
+            });
+        }
+    }
+    
+    if (rules.comments.includes('//')) {
+        const commentRegex = /\/\/.*$/gm;
+        let match;
+        while ((match = commentRegex.exec(code)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                type: 'comment',
+                text: match[0]
+            });
+        }
+    }
+    
+    if (rules.comments.includes('/*')) {
+        const commentRegex = /\/\*[\s\S]*?\*\//g;
+        let match;
+        while ((match = commentRegex.exec(code)) !== null) {
+            matches.push({
+                start: match.index,
+                end: match.index + match[0].length,
+                type: 'comment',
+                text: match[0]
+            });
+        }
+    }
+    
+    // 按位置排序
+    matches.sort((a, b) => a.start - b.start);
+    
+    // 移除重叠的匹配项（保留最先匹配的）
+    const filteredMatches = [];
+    for (let i = 0; i < matches.length; i++) {
+        const current = matches[i];
+        const isOverlapping = filteredMatches.some(existing => 
+            (current.start >= existing.start && current.start < existing.end) ||
+            (current.end > existing.start && current.end <= existing.end) ||
+            (current.start <= existing.start && current.end >= existing.end)
+        );
+        if (!isOverlapping) {
+            filteredMatches.push(current);
+        }
+    }
+    
+    // 构建最终的HTML
+    let result = '';
+    let lastIndex = 0;
+    
+    for (const match of filteredMatches) {
+        // 添加匹配前的普通文本
+        if (match.start > lastIndex) {
+            const plainText = code.substring(lastIndex, match.start);
+            result += highlightPlainText(plainText, rules);
+        }
+        
+        // 添加高亮的匹配项
+        result += `<span class="${match.type}">${escapeHtml(match.text)}</span>`;
+        lastIndex = match.end;
+    }
+    
+    // 添加剩余的普通文本
+    if (lastIndex < code.length) {
+        const plainText = code.substring(lastIndex);
+        result += highlightPlainText(plainText, rules);
+    }
+    
+    return result;
+}
+
+// 高亮普通文本（不是字符串或注释的部分）
+function highlightPlainText(text, rules) {
+    let highlighted = escapeHtml(text);
+    
+    // 创建一个数组来追踪已经高亮的位置，避免重复高亮
+    const highlightedRanges = [];
+    
+    function addHighlight(start, end, replacement) {
+        // 检查是否与现有高亮重叠
+        const isOverlapping = highlightedRanges.some(range => 
+            (start >= range.start && start < range.end) ||
+            (end > range.start && end <= range.end) ||
+            (start <= range.start && end >= range.end)
+        );
+        
+        if (!isOverlapping) {
+            highlightedRanges.push({ start, end, replacement });
+            return true;
+        }
+        return false;
+    }
+    
+    // 1. 高亮关键字
     rules.keywords.forEach(keyword => {
-        const regex = new RegExp(`\\b${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'g');
-        highlighted = highlighted.replace(regex, `<span class="keyword">${keyword}</span>`);
+        const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'g');
+        let match;
+        while ((match = regex.exec(highlighted)) !== null) {
+            const start = match.index;
+            const end = match.index + match[0].length;
+            const replacement = `<span class="keyword">${keyword}</span>`;
+            addHighlight(start, end, replacement);
+        }
     });
     
-    // 高亮字符串 - 更精确的处理
-    if (rules.stringQuotes.includes('"')) {
-        highlighted = highlighted.replace(/("(?:[^"\\]|\\.)*")/g, '<span class="string">$1</span>');
-    }
-    if (rules.stringQuotes.includes("'")) {
-        highlighted = highlighted.replace(/('(?:[^'\\]|\\.)*')/g, '<span class="string">$1</span>');
-    }
-    if (rules.stringQuotes.includes('`')) {
-        highlighted = highlighted.replace(/(`(?:[^`\\]|\\.)*`)/g, '<span class="string">$1</span>');
-    }
-    
-    // 高亮三引号字符串 (Python)
-    if (language.toLowerCase() === 'python') {
-        highlighted = highlighted.replace(/("""[\s\S]*?""")/g, '<span class="string">$1</span>');
-        highlighted = highlighted.replace(/('''[\s\S]*?''')/g, '<span class="string">$1</span>');
-    }
-    
-    // 高亮注释
-    if (rules.comments.includes('//')) {
-        highlighted = highlighted.replace(/(\/\/.*$)/gm, '<span class="comment">$1</span>');
-    }
-    if (rules.comments.includes('/*')) {
-        highlighted = highlighted.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="comment">$1</span>');
-    }
-    if (rules.comments.includes('#')) {
-        highlighted = highlighted.replace(/(#.*$)/gm, '<span class="comment">$1</span>');
-    }
-    
-    // 高亮函数调用
+    // 2. 高亮函数调用
     if (rules.functions) {
-        highlighted = highlighted.replace(rules.functions, '<span class="function">$1</span>');
+        let match;
+        while ((match = rules.functions.exec(highlighted)) !== null) {
+            const start = match.index;
+            const end = match.index + match[1].length; // 只匹配函数名部分
+            const replacement = `<span class="function">${match[1]}</span>`;
+            addHighlight(start, end, replacement);
+        }
+        // 重置正则表达式的lastIndex
+        rules.functions.lastIndex = 0;
     }
     
-    // 高亮数字
-    highlighted = highlighted.replace(/\b(\d+\.?\d*)\b/g, '<span class="number">$1</span>');
+    // 3. 高亮数字
+    const numberRegex = /\b(\d+\.?\d*)\b/g;
+    let match;
+    while ((match = numberRegex.exec(highlighted)) !== null) {
+        const start = match.index;
+        const end = match.index + match[0].length;
+        const replacement = `<span class="number">${match[1]}</span>`;
+        addHighlight(start, end, replacement);
+    }
     
-    // 高亮操作符
-    highlighted = highlighted.replace(/([+\-*/%=<>!&|^~])/g, '<span class="operator">$1</span>');
+    // 4. 高亮装饰器 (Python)
+    if (rules.decorators) {
+        let match;
+        while ((match = rules.decorators.exec(highlighted)) !== null) {
+            const start = match.index;
+            const end = match.index + match[0].length;
+            const replacement = `<span class="decorator">${match[0]}</span>`;
+            addHighlight(start, end, replacement);
+        }
+        // 重置正则表达式的lastIndex
+        rules.decorators.lastIndex = 0;
+    }
+    
+    // 5. 高亮操作符（最后处理，优先级最低）
+    const operatorRegex = /([\+\-\*\/%=<>!&\|\^~])/g;
+    while ((match = operatorRegex.exec(highlighted)) !== null) {
+        const start = match.index;
+        const end = match.index + match[0].length;
+        const replacement = `<span class="operator">${match[1]}</span>`;
+        addHighlight(start, end, replacement);
+    }
+    
+    // 按位置倒序排序，从后往前替换，避免位置偏移
+    highlightedRanges.sort((a, b) => b.start - a.start);
+    
+    // 应用所有高亮
+    for (const range of highlightedRanges) {
+        highlighted = highlighted.substring(0, range.start) + 
+                     range.replacement + 
+                     highlighted.substring(range.end);
+    }
     
     return highlighted;
 }
