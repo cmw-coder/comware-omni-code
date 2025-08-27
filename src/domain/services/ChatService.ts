@@ -72,8 +72,8 @@ export class ChatService implements IChatService {
                 throw new Error('Failed to get test script response');
             }
 
-            // 创建助手消息
-            const assistantMessage = ChatMessageEntity.create('assistant', aiResponse, sessionId);
+            // 创建助手消息，添加testScript metadata
+            const assistantMessage = ChatMessageEntity.create('assistant', aiResponse, sessionId, { mode: 'testScript' });
             await this.chatRepository.saveMessage(assistantMessage);
 
             this.logger.info('Test script message processed successfully');
@@ -123,8 +123,8 @@ export class ChatService implements IChatService {
                 throw new Error('Failed to get test script response');
             }
 
-            // 创建助手消息
-            const assistantMessage = ChatMessageEntity.create('assistant', aiResponse, sessionId);
+            // 创建助手消息，添加testScript metadata
+            const assistantMessage = ChatMessageEntity.create('assistant', aiResponse, sessionId, { mode: 'testScript' });
             await this.chatRepository.saveMessage(assistantMessage);
 
             this.logger.info('Test script message processed successfully');
