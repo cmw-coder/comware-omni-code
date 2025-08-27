@@ -156,13 +156,13 @@ function showProgress(message, status, fileName) {
     container.scrollTop = container.scrollHeight;
     
     // 自动移除非错误的进度消息
-    if (status !== 'error') {
-        setTimeout(() => {
-            if (progressDiv.parentNode) {
-                progressDiv.remove();
-            }
-        }, 8000);
-    }
+    // if (status !== 'error') {
+    //     setTimeout(() => {
+    //         if (progressDiv.parentNode) {
+    //             progressDiv.remove();
+    //         }
+    //     }, 8000);
+    // }
 }
 
 function escapeHtml(text) {
