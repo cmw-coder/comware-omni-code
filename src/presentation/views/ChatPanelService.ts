@@ -63,6 +63,9 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
                 case 'openFile':
                     await this.handleOpenFile(data.fileName);
                     break;
+                case 'insertCode':
+                    await this.handleInsertCode(data.code);
+                    break;
             }
         } catch (error) {
             this.logger.error('Error handling webview message', error as Error, data);
@@ -239,6 +242,35 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
         } catch (error) {
             this.logger.error('Failed to open file', error as Error, { fileName });
             this.showError(`Failed to open file: ${fileName}`);
+        }
+    }
+
+    private async handleInsertCode(code: string): Promise<void> {
+        try {
+            const activeEditor = vscode.window.activeTextEditor;
+            if (!activeEditor) {
+                this.showError('No active editor found');
+                return;
+            }
+
+            // 获取当前光标位置
+            const position = activeEditor.selection.active;
+            
+            // 插入代码
+            await activeEditor.edit(editBuilder => {
+                editBuilder.insert(position, code);
+            });
+
+            // 将焦点切换到编辑器
+            await vscode.window.showTextDocument(activeEditor.document);
+
+            this.logger.info('Code inserted at cursor position', { 
+                codeLength: code.length,
+                position: { line: position.line, character: position.character }
+            });
+        } catch (error) {
+            this.logger.error('Failed to insert code', error as Error, { code: code.substring(0, 100) + '...' });
+            this.showError('Failed to insert code at cursor position');
         }
     }
 

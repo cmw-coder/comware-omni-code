@@ -220,3 +220,122 @@ body {
     color: var(--vscode-button-foreground);
     transform: scale(1.05);
 }
+
+/* 代码块样式 */
+.code-block {
+    margin: 8px 0;
+    border-radius: 6px;
+    background: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-panel-border);
+    overflow: hidden;
+}
+
+.code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--vscode-editorGroupHeader-tabsBackground);
+    border-bottom: 1px solid var(--vscode-panel-border);
+    font-size: 12px;
+}
+
+.code-language {
+    color: var(--vscode-descriptionForeground);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.code-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.code-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--vscode-icon-foreground);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.code-action-btn:hover {
+    background: var(--vscode-toolbar-hoverBackground);
+}
+
+.code-content {
+    margin: 0;
+    padding: 12px;
+    overflow-x: auto;
+    font-family: var(--vscode-editor-font-family, 'Consolas', 'Monaco', 'Courier New', monospace);
+    font-size: var(--vscode-editor-font-size, 14px);
+    line-height: 1.4;
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+}
+
+.code-content code {
+    background: none;
+    padding: 0;
+    border: none;
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* 行内代码样式 */
+.inline-code {
+    background: var(--vscode-textCodeBlock-background);
+    color: var(--vscode-textPreformat-foreground);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: var(--vscode-editor-font-family, 'Consolas', 'Monaco', 'Courier New', monospace);
+    font-size: 0.9em;
+    border: 1px solid var(--vscode-panel-border);
+}
+
+/* 语法高亮样式 */
+.keyword {
+    color: var(--vscode-symbolIcon-keywordForeground, #569cd6);
+    font-weight: 500;
+}
+
+.string {
+    color: var(--vscode-symbolIcon-stringForeground, #ce9178);
+}
+
+.comment {
+    color: var(--vscode-symbolIcon-snippetForeground, #6a9955);
+    font-style: italic;
+}
+
+.number {
+    color: var(--vscode-symbolIcon-numberForeground, #b5cea8);
+}
+
+/* 提示消息样式 */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--vscode-notifications-background);
+    color: var(--vscode-notifications-foreground);
+    border: 1px solid var(--vscode-notifications-border);
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(0);
+}
