@@ -8,6 +8,9 @@ import { TYPES } from '../../core/container/types';
 export interface IChatUseCase {
     sendMessage(content: string, sessionId?: string, mode?: string): Promise<ChatMessage>;
     sendTestScriptMessage(content: string, testScriptRequest: TestScriptRequest, sessionId?: string): Promise<ChatMessage>;
+    sendMessageWithoutUserMessage(sessionId?: string, mode?: string): Promise<ChatMessage>;
+    sendTestScriptMessageWithoutUserMessage(testScriptRequest: TestScriptRequest, sessionId?: string): Promise<ChatMessage>;
+    addUserMessage(content: string, sessionId?: string): Promise<ChatMessage>;
     addSystemMessage(message: ChatMessage): Promise<void>;
     getChatHistory(sessionId?: string): Promise<ChatMessage[]>;
     clearChatHistory(sessionId?: string): Promise<void>;
@@ -39,6 +42,26 @@ export class ChatUseCase implements IChatUseCase {
         }
 
         return await this.chatService.sendTestScriptMessage(content, testScriptRequest, sessionId);
+    }
+
+    async sendMessageWithoutUserMessage(sessionId?: string, mode?: string): Promise<ChatMessage> {
+        this.logger.info('Chat use case: sending message without user message', { sessionId, mode });
+        return await this.chatService.sendMessageWithoutUserMessage(sessionId, mode);
+    }
+
+    async sendTestScriptMessageWithoutUserMessage(testScriptRequest: TestScriptRequest, sessionId?: string): Promise<ChatMessage> {
+        this.logger.info('Chat use case: sending test script message without user message', { sessionId });
+        return await this.chatService.sendTestScriptMessageWithoutUserMessage(testScriptRequest, sessionId);
+    }
+
+    async addUserMessage(content: string, sessionId?: string): Promise<ChatMessage> {
+        this.logger.debug('Chat use case: adding user message', { content: content.substring(0, 50) + '...', sessionId });
+        
+        if (!content.trim()) {
+            throw new Error('Message content cannot be empty');
+        }
+
+        return await this.chatService.addUserMessage(content, sessionId);
     }
 
     async addSystemMessage(message: ChatMessage): Promise<void> {

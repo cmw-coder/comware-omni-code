@@ -83,18 +83,22 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
                 this._currentSessionId = await this.chatUseCase.createNewSession();
             }
 
+            // 立即创建并显示用户消息
+            await this.chatUseCase.addUserMessage(message, this._currentSessionId);
+            await this.loadChatHistory();
+
             let responseMessage: ChatMessage;
 
             if (mode === 'testScript') {
                 // Handle testScript mode
                 const testScriptRequest = await this.prepareTestScriptRequest(message);
-                responseMessage = await this.chatUseCase.sendTestScriptMessage(message, testScriptRequest, this._currentSessionId);
+                responseMessage = await this.chatUseCase.sendTestScriptMessageWithoutUserMessage(testScriptRequest, this._currentSessionId);
             } else {
                 // Handle regular chat mode
-                responseMessage = await this.chatUseCase.sendMessage(message, this._currentSessionId, mode);
+                responseMessage = await this.chatUseCase.sendMessageWithoutUserMessage(this._currentSessionId, mode);
             }
             
-            // Reload chat history
+            // Reload chat history to show AI response
             await this.loadChatHistory();
         } catch (error) {
             this.logger.error('Failed to send message', error as Error);
