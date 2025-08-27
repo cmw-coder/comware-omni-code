@@ -86,6 +86,9 @@ export class OpenAIClient implements IAIClient {
                 })
             });
 
+            this.logger.raw(response)
+            
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`Test script API error! status: ${response.status}, message: ${errorText}`);

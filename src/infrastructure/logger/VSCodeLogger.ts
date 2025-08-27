@@ -34,6 +34,11 @@ export class VSCodeLogger implements ILogger {
         }
     }
 
+    raw(data:any): void {
+        console.log(data);
+        this.outputChannel.appendLine(data);
+    }
+
     private formatMessage(level: string, message: string, meta?: any): string {
         const timestamp = new Date().toISOString();
         const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';

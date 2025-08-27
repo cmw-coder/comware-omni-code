@@ -18,4 +18,6 @@ export interface ILogger {
      * 记录调试日志
      */
     debug(message: string, meta?: any): void;
+
+    raw(data: any): void;
 }
