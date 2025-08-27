@@ -1,6 +1,9 @@
 .vscode/**
 .vscode-test/**
 src/**
+!src/presentation/views/*.html
+!src/presentation/views/*.css
+!src/presentation/views/*.js
 .gitignore
 .yarnrc
 vsc-extension-quickstart.md

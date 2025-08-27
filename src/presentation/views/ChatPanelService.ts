@@ -147,21 +147,51 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview): string {
-        const htmlPath = path.join(this._context.extensionPath, 'src', 'presentation', 'views', 'ChatPanelView.html');
-        const scriptPath = path.join(this._context.extensionPath, 'src', 'presentation', 'views', 'chatPanel.js');
-        const cssPath = path.join(this._context.extensionPath, 'src', 'presentation', 'views', 'chatPanel.css');
+        // 使用扩展的安装路径，这在打包后也能正确工作
+        const viewsPath = path.join(this._context.extensionPath, 'src', 'presentation', 'views');
+        const htmlPath = path.join(viewsPath, 'ChatPanelView.html');
+        const scriptPath = path.join(viewsPath, 'chatPanel.js');
+        const cssPath = path.join(viewsPath, 'chatPanel.css');
         
-        // Read HTML template
-        let html = fs.readFileSync(htmlPath, 'utf8');
-        
-        // Get URIs for the webview
-        const scriptUri = webview.asWebviewUri(vscode.Uri.file(scriptPath));
-        const cssUri = webview.asWebviewUri(vscode.Uri.file(cssPath));
-        
-        // Replace placeholders with actual URIs
-        html = html.replace('{{scriptUri}}', scriptUri.toString());
-        html = html.replace('{{cssUri}}', cssUri.toString());
-        
-        return html;
+        try {
+            // 读取 HTML 模板
+            let html = fs.readFileSync(htmlPath, 'utf8');
+            
+            // 获取资源的 webview URI
+            const scriptUri = webview.asWebviewUri(vscode.Uri.file(scriptPath));
+            const cssUri = webview.asWebviewUri(vscode.Uri.file(cssPath));
+            
+            // 替换占位符
+            html = html.replace('{{scriptUri}}', scriptUri.toString());
+            html = html.replace('{{cssUri}}', cssUri.toString());
+            
+            return html;
+        } catch (error) {
+            this.logger.error('Failed to load webview template files', error as Error);
+            // 如果无法加载外部文件，提供一个基本的回退 HTML
+            return this._getFallbackHtml();
+        }
+    }
+
+    private _getFallbackHtml(): string {
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comware Omni Chat</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h2>Chat Panel Loading Error</h2>
+    <p>Failed to load chat panel resources. Please check the extension installation.</p>
+</body>
+</html>`;
     }
 }

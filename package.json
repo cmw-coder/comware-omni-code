@@ -4,6 +4,10 @@
   "description": "",
   "publisher": "comware",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cmw-coder/comware-omni-code.git"
+  },
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -175,7 +179,8 @@
     "pretest": "pnpm run compile && pnpm run lint",
     "lint": "eslint src",
     "test": "vscode-test",
-    "package": "pnpm vsce package --no-dependencies"
+    "package": "pnpm vsce package --no-dependencies --baseContentUrl https://github.com/cmw-coder/comware-omni-code/blob/temp/",
+    "verify-package": "./scripts/verify-package.sh"
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
