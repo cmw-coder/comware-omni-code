@@ -173,14 +173,13 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run compile",
-    "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "pnpm run compile && pnpm run lint",
-    "lint": "eslint src",
+    "package": "pnpm vsce package --no-dependencies --out dist/ --baseContentUrl https://github.com/cmw-coder/comware-omni-code/blob/temp/",
+    "vscode:prepublish": "pnpm run compile && pnpm mkdir dist",
+    "compile": "tsc -p ./",
     "test": "vscode-test",
-    "package": "pnpm vsce package --no-dependencies --baseContentUrl https://github.com/cmw-coder/comware-omni-code/blob/temp/",
-    "verify-package": "./scripts/verify-package.sh"
+    "pretest": "pnpm run compile && pnpm run lint",
+    "lint": "eslint src"
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
