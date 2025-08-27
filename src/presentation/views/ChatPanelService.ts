@@ -255,23 +255,101 @@ export class ChatPanelService implements vscode.WebviewViewProvider {
 
             // 获取当前光标位置
             const position = activeEditor.selection.active;
+            const document = activeEditor.document;
+            
+            // 获取当前行的缩进
+            const currentLine = document.lineAt(position.line);
+            const currentIndent = this.getLineIndentation(currentLine.text);
+            
+            // 处理代码缩进
+            const processedCode = this.adjustCodeIndentation(code, currentIndent, position.character);
             
             // 插入代码
             await activeEditor.edit(editBuilder => {
-                editBuilder.insert(position, code);
+                editBuilder.insert(position, processedCode);
             });
 
             // 将焦点切换到编辑器
             await vscode.window.showTextDocument(activeEditor.document);
 
-            this.logger.info('Code inserted at cursor position', { 
+            this.logger.info('Code inserted at cursor position with proper indentation', { 
                 codeLength: code.length,
-                position: { line: position.line, character: position.character }
+                processedLength: processedCode.length,
+                position: { line: position.line, character: position.character },
+                currentIndent: currentIndent.length
             });
         } catch (error) {
             this.logger.error('Failed to insert code', error as Error, { code: code.substring(0, 100) + '...' });
             this.showError('Failed to insert code at cursor position');
         }
+    }
+
+    /**
+     * 获取行的缩进字符串
+     */
+    private getLineIndentation(lineText: string): string {
+        const match = lineText.match(/^(\s*)/);
+        return match ? match[1] : '';
+    }
+
+    /**
+     * 调整代码的缩进以匹配当前位置
+     */
+    private adjustCodeIndentation(code: string, baseIndent: string, cursorColumn: number): string {
+        const lines = code.split('\n');
+        
+        if (lines.length === 1) {
+            // 单行代码，直接返回
+            return code;
+        }
+
+        // 检测代码块的最小缩进（排除空行）
+        let minIndent = Infinity;
+        const nonEmptyLines = lines.filter(line => line.trim() !== '');
+        
+        for (const line of nonEmptyLines) {
+            const indent = this.getLineIndentation(line);
+            minIndent = Math.min(minIndent, indent.length);
+        }
+        
+        // 如果所有行都没有缩进，minIndent 为 0
+        if (minIndent === Infinity) {
+            minIndent = 0;
+        }
+
+        // 多行代码处理
+        const processedLines: string[] = [];
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            if (i === 0) {
+                // 第一行直接插入，不调整缩进
+                processedLines.push(line);
+            } else {
+                // 后续行需要调整缩进
+                if (line.trim() === '') {
+                    // 空行保持空行
+                    processedLines.push('');
+                } else {
+                    // 获取当前行的原始缩进
+                    const originalIndent = this.getLineIndentation(line);
+                    
+                    // 计算相对缩进：当前行缩进 - 最小缩进
+                    const relativeIndentLevel = Math.max(0, originalIndent.length - minIndent);
+                    
+                    // 移除原有的前导空格，保留相对缩进
+                    const trimmedLine = line.replace(/^\s*/, '');
+                    
+                    // 构建新的缩进：基础缩进 + 相对缩进
+                    const newIndent = baseIndent + ' '.repeat(relativeIndentLevel);
+                    
+                    processedLines.push(newIndent + trimmedLine);
+                }
+            }
+        }
+        
+        return processedLines.join('\n');
     }
 
     private async loadChatHistory(): Promise<void> {
