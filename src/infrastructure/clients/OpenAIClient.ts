@@ -102,9 +102,8 @@ export class OpenAIClient implements IAIClient {
             try {
                 while (!finished) {
                     const { done, value } = await reader.read()
-                    if (done) {
-                        break
-                    }
+
+                    this.logger.info('[OpenAIClient] Read chunk:', { chunk: decoder.decode(value, { stream: true }) })
 
                     buffer += decoder.decode(value, { stream: true })
                     const lines = buffer.split('\n')
@@ -114,6 +113,10 @@ export class OpenAIClient implements IAIClient {
                         const trimmedLine = line.trim()
                         this.logger.info('[OpenAIClient] Received line:', trimmedLine)
                         fullAnswer += trimmedLine + '\n'
+                    }
+
+                    if (done) {
+                        finished = true
                     }
                 }
             } finally {
