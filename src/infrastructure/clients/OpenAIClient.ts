@@ -10,7 +10,7 @@ export class OpenAIClient implements IAIClient {
     constructor(
         @inject(TYPES.ConfigurationService) private configService: IConfigurationService,
         @inject(TYPES.Logger) private logger: ILogger
-    ) {}
+    ) { }
 
     async getCompletion(prompt: string): Promise<string | undefined> {
         try {
@@ -66,7 +66,7 @@ export class OpenAIClient implements IAIClient {
 
     async generateTestScript(request: TestScriptRequest): Promise<string | undefined> {
         try {
-            this.logger.info('Generating test script with external API', { 
+            this.logger.info('[OpenAIClient] Generating test script with external API', {
                 query: request.query.substring(0, 50) + '...',
                 conftest: request.conftest.length > 0 ? 'provided' : 'empty',
                 topox: request.topox.length > 0 ? 'provided' : 'empty',
@@ -86,21 +86,48 @@ export class OpenAIClient implements IAIClient {
                 })
             });
 
-            this.logger.raw(response)
-            
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Test script API error! status: ${response.status}, message: ${errorText}`);
+            if (!response.ok || !response.body) {
+                const errorBody = await response.json()
+                throw new Error(`[OpenAIClient] HTTP error, status: ${response.status} ${response.statusText}, details: ${JSON.stringify(errorBody)}`);
             }
 
-            const result = await response.json() as { content?: string };
-            if (result && typeof result.content === 'string') {
-                this.logger.info('Test script generated successfully');
-                return result.content;
-            } else {
-                throw new Error('Invalid response format from test script API');
+            this.logger.info('[OpenAIClient] Streaming answer started', { status: response.status })
+
+            const reader = response.body.getReader()
+            const decoder = new TextDecoder()
+            let buffer = ''
+            let fullAnswer = ''
+            let finished = false
+
+            try {
+                while (!finished) {
+                    const { done, value } = await reader.read()
+                    if (done) {
+                        break
+                    }
+
+                    buffer += decoder.decode(value, { stream: true })
+                    const lines = buffer.split('\n')
+                    buffer = lines.pop() || ''
+
+                    for (const line of lines) {
+                        const trimmedLine = line.trim()
+                        this.logger.info('[OpenAIClient] Received line:', trimmedLine)
+                        fullAnswer += trimmedLine + '\n'
+                    }
+                }
+            } finally {
+                reader.releaseLock()
             }
+
+            // const result = await response.json() as { content?: string };
+            // if (result && typeof result.content === 'string') {
+            //     this.logger.info('Test script generated successfully');
+            //     return result.content;
+            // } else {
+            //     throw new Error('Invalid response format from test script API');
+            // }
+            return fullAnswer;
         } catch (error) {
             this.logger.raw(error);
             return undefined;
@@ -115,7 +142,7 @@ export class OpenAIClient implements IAIClient {
                     content: 'Hello'
                 }
             ];
-            
+
             const response = await this.makeRequest(testMessage);
             return !!response?.choices?.[0]?.message?.content;
         } catch (error) {
